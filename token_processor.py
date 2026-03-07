@@ -103,6 +103,33 @@ def apply_mask(img: Image.Image, mask: Image.Image) -> Image.Image:
     return Image.merge("RGBA", (r, g, b, new_alpha))
 
 
+def apply_manual_transform(
+    img: Image.Image,
+    pan_x: float,
+    pan_y: float,
+    user_scale: float,
+    canvas_size: int,
+) -> Image.Image:
+    """Place img onto a canvas_size×canvas_size canvas with manual positioning.
+
+    pan_x, pan_y:  offset of image centre from canvas centre, as a fraction
+                   of canvas_size (pan_pixels / CANVAS_PX from the browser).
+    user_scale:    zoom multiplier (1.0 = shorter side of img fills canvas_size).
+    """
+    base_scale = canvas_size / min(img.width, img.height)
+    effective  = base_scale * user_scale
+    new_w = max(1, round(img.width  * effective))
+    new_h = max(1, round(img.height * effective))
+    resized = img.resize((new_w, new_h), Image.LANCZOS)
+
+    paste_x = canvas_size // 2 - new_w // 2 + round(pan_x * canvas_size)
+    paste_y = canvas_size // 2 - new_h // 2 + round(pan_y * canvas_size)
+
+    out = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    out.paste(resized, (paste_x, paste_y), resized)
+    return out
+
+
 def apply_frame(char: Image.Image, frame: Image.Image, split_y: float = 0.5) -> Image.Image:
     """Composite a decorative frame over a character token.
 
@@ -157,10 +184,14 @@ def process_file(
     remove_bg_token: bool = True,
     frame_path: Path | None = None,
     split_y: float = 0.5,
+    transform: dict | None = None,
 ) -> dict:
     """
     Process one image.
     mode: 'both' | 'portrait' | 'token' | 'nobg'
+    transform: when provided (manual-positioning mode), skips bg removal and
+               auto-crop; loads the pre-computed nobg from transform['nobg_path']
+               and places it using apply_manual_transform.
     Returns dict with keys for produced paths (portrait, token, nobg).
     Raises ValueError for unsupported extensions.
     """
@@ -173,6 +204,34 @@ def process_file(
     print(f"\nProcessing: {src.name}  [mode={mode}, size={size}]")
 
     result = {}
+
+    # ── Manual-transform path (preview mode) ─────────────────────────────────
+    if transform:
+        nobg = Image.open(Path(transform["nobg_path"])).convert("RGBA")
+        pan_x      = float(transform.get("pan_x",      0.0))
+        pan_y      = float(transform.get("pan_y",      0.0))
+        user_scale = float(transform.get("user_scale", 1.0))
+        print(f"  [manual] pan=({pan_x:.3f},{pan_y:.3f}) zoom={user_scale:.2f}")
+
+        if mode in ("both", "portrait"):
+            scaled = apply_manual_transform(nobg, pan_x, pan_y, user_scale, size)
+            path   = out_dir / f"{src.stem}.webp"
+            _save(scaled, path)
+            print(f"  ✓ Portrait → {path.name}")
+            result["portrait"] = path
+
+        if mode in ("both", "token"):
+            scaled = apply_manual_transform(nobg, pan_x, pan_y, user_scale, size)
+            token  = apply_mask(scaled.copy(), load_token_mask(size, mask_path))
+            if frame_path:
+                token = apply_frame(token, Image.open(frame_path).convert("RGBA"), split_y)
+            path  = out_dir / f"{src.stem}_token.webp"
+            _save(token, path, lossless=True)
+            print(f"  ✓ Token    → {path.name}")
+            result["token"] = path
+
+        return result
+    # ─────────────────────────────────────────────────────────────────────────
 
     raw = Image.open(src).convert("RGBA")
     already_transparent = _has_transparency(raw)
@@ -256,6 +315,7 @@ def process_folder(
     remove_bg_token: bool = True,
     frame_path: Path | None = None,
     split_y: float = 0.5,
+    transform: dict | None = None,
 ) -> list[dict]:
     """Process every supported image in folder (non-recursive)."""
     images = sorted(f for f in folder.iterdir() if f.suffix.lower() in SUPPORTED_EXT)
@@ -268,7 +328,7 @@ def process_folder(
             results.append(process_file(img_path, out_dir, mode, mask_path, size,
                                         crop_backend, crop_zoom,
                                         remove_bg_portrait, remove_bg_token,
-                                        frame_path, split_y))
+                                        frame_path, split_y, transform))
         except Exception as exc:
             print(f"  ! Skipped {img_path.name}: {exc}")
     return results

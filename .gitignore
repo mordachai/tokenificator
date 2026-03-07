@@ -13,6 +13,9 @@ venv/
 # Downloaded AI models (large, auto-downloaded on first use)
 models/*.tflite
 
+# Temp files from /prepare endpoint
+tmp/
+
 # Output files
 *.webp
 

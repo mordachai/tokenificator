@@ -35,15 +35,86 @@
       border-radius: var(--radius);
       padding: 2rem;
       width: 100%;
-      max-width: 900px;
+      max-width: 1140px;
     }
 
     h1 { font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
     h1 span { color: var(--accent); }
-    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+    /* ── Two-column layout ── */
+    .app-layout {
+      display: flex;
+      gap: 1.75rem;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+    .controls-panel { flex: 1 1 0; min-width: 0; }
+
+    /* ── Preview panel ── */
+    .preview-panel {
+      flex: 0 0 auto;
+      width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .preview-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .canvas-wrap {
+      position: relative;
+      width: 420px;
+      height: 420px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: crosshair;
+      background: #111;
+    }
+    .canvas-wrap.has-image { cursor: grab; }
+    .canvas-wrap.has-image:active { cursor: grabbing; }
+    #previewCanvas {
+      display: block;
+      width: 420px;
+      height: 420px;
+    }
+    .canvas-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      pointer-events: none;
+      line-height: 2.2;
+    }
+    .canvas-placeholder.hidden { display: none; }
+    .canvas-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 0.35rem;
+      opacity: 0.65;
+    }
+    .preview-btns { display: flex; gap: 0.5rem; }
+    .preview-btns button { flex: 1; font-size: 0.8rem; padding: 0.5rem 0.5rem; }
+    .preview-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      min-height: 1rem;
+    }
+    .preview-meta.manual { color: #7ec8a4; }
 
     /* ── Fields ── */
-    .field { margin-bottom: 1.25rem; }
+    .field { margin-bottom: 1.1rem; }
     label {
       display: block;
       font-size: 0.8rem;
@@ -76,6 +147,7 @@
       transition: background 0.15s;
     }
     button:hover { background: #1a4a80; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; background: var(--border); }
 
     .btn-primary {
       background: var(--accent);
@@ -83,7 +155,7 @@
       padding: 0.7rem;
       font-size: 1rem;
       font-weight: 600;
-      margin-top: 0.75rem;
+      margin-top: 0.5rem;
       letter-spacing: 0.04em;
     }
     .btn-primary:hover { background: #c73350; }
@@ -91,12 +163,42 @@
 
     .hint { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
 
-    /* ── Selector row ── */
-    .selector-row {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 0.75rem;
+    /* ── Selector layout ── */
+    .selector-layout {
+      display: flex;
+      gap: 1rem;
       margin-bottom: 0.75rem;
+      align-items: flex-start;
+    }
+    .main-selectors {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    .auto-section {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem 0.6rem;
+      margin: 0;
+      flex: 1;
+    }
+    .auto-section legend {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0.4rem;
+    }
+    .auto-selectors {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .auto-section:disabled, .auto-section[disabled] {
+      opacity: 0.38;
+      pointer-events: none;
     }
     .selector-col {
       display: flex;
@@ -114,7 +216,6 @@
     /* ── Selector button ── */
     .sel-btn {
       width: 100%;
-      max-width: 150px;
       aspect-ratio: 1;
       display: flex;
       flex-direction: column;
@@ -156,30 +257,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--muted);
       text-align: center;
       padding: 0.25rem;
       z-index: 0;
     }
-    /* text-only visual (size, crop, zoom) */
-    .sel-text {
-      flex-direction: column;
-      line-height: 1.1;
-    }
-    .sel-big {
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1;
-    }
-    .sel-unit {
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 0.1rem;
-    }
+    .sel-text { flex-direction: column; line-height: 1.1; }
+    .sel-big  { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .sel-unit { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
     .sel-name {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -191,7 +279,7 @@
       flex-shrink: 0;
     }
 
-    /* ── Picker overlay (unified) ── */
+    /* ── Picker overlay ── */
     .overlay {
       display: none;
       position: fixed;
@@ -202,7 +290,6 @@
       justify-content: center;
     }
     .overlay.open { display: flex; }
-
     .picker-modal {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -232,13 +319,7 @@
       cursor: pointer;
     }
     .picker-close:hover { color: var(--text); background: none; }
-
-    .picker-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
+    .picker-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
     .popt {
       display: flex;
       flex-direction: column;
@@ -250,9 +331,8 @@
       border: 2px solid transparent;
       transition: border-color 0.12s, background 0.12s;
     }
-    .popt:hover  { border-color: var(--border); }
+    .popt:hover   { border-color: var(--border); }
     .popt.selected { border-color: var(--accent); background: #1a0710; }
-
     .popt-vis {
       width: 100px;
       height: 100px;
@@ -284,20 +364,9 @@
       padding: 0.25rem;
       z-index: 0;
     }
-    .popt-text {
-      flex-direction: column;
-      line-height: 1.1;
-    }
-    .popt-text .popt-big {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--text);
-    }
-    .popt-text .popt-unit {
-      font-size: 0.65rem;
-      color: var(--muted);
-    }
-
+    .popt-text { flex-direction: column; line-height: 1.1; }
+    .popt-text .popt-big  { font-size: 2rem; font-weight: 800; color: var(--text); }
+    .popt-text .popt-unit { font-size: 0.65rem; color: var(--muted); }
     .popt-label {
       font-size: 0.68rem;
       color: var(--muted);
@@ -307,7 +376,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
     .picker-hint-bar {
       min-height: 1.4rem;
       margin-top: 0.75rem;
@@ -318,60 +386,8 @@
       font-style: italic;
     }
 
-    /* ── Image preview lightbox ── */
-    #imgOverlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.88);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
-    #imgOverlay.open { display: flex; }
-    .img-modal {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      max-width: 90vw;
-      max-height: 90vh;
-    }
-    .img-close {
-      position: absolute;
-      top: -2.2rem;
-      right: 0;
-      background: none;
-      border: none;
-      color: #ccc;
-      font-size: 1.6rem;
-      line-height: 1;
-      cursor: pointer;
-      padding: 0.1rem 0.4rem;
-    }
-    .img-close:hover { color: #fff; background: none; }
-    #imgPreview {
-      max-width: 100%;
-      max-height: 80vh;
-      border-radius: var(--radius);
-      /* checkerboard to show transparency */
-      background-color: #2d2d2d;
-      background-image:
-        linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
-        linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
-        linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
-      background-size: 16px 16px;
-      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-    }
-    #imgName { font-size: 0.78rem; color: var(--muted); font-family: monospace; }
-
     /* ── Split-Y row ── */
-    .split-row {
-      display: none;
-      margin-bottom: 1rem;
-    }
+    .split-row { display: none; margin-bottom: 0.9rem; }
     .split-row.visible { display: block; }
     .split-label-row {
       display: flex;
@@ -427,8 +443,56 @@
     .toggle-label input:checked ~ .toggle-track { background: var(--accent); }
     .toggle-label input:checked ~ .toggle-track::after { left: 19px; background: #fff; }
 
+    /* ── Image lightbox ── */
+    #imgOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #imgOverlay.open { display: flex; }
+    .img-modal {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+    .img-close {
+      position: absolute;
+      top: -2.2rem;
+      right: 0;
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.1rem 0.4rem;
+    }
+    .img-close:hover { color: #fff; background: none; }
+    #imgPreview {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: var(--radius);
+      background-color: #2d2d2d;
+      background-image:
+        linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+        linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    #imgName { font-size: 0.78rem; color: var(--muted); font-family: monospace; }
+
     /* ── Results ── */
-    #results { margin-top: 2rem; }
+    #results { margin-top: 1.5rem; }
     #results h2 { font-size: 1rem; color: var(--muted); margin-bottom: 1rem; }
     .result-item {
       display: flex;
@@ -454,7 +518,16 @@
     }
     .result-badge:hover { border-color: var(--accent); color: var(--accent); }
     .error-item { color: var(--accent); padding: 0.5rem 0; font-size: 0.85rem; }
-    #status { text-align: center; font-size: 0.9rem; color: var(--muted); padding: 1rem 0 0; }
+    #status { text-align: center; font-size: 0.9rem; color: var(--muted); padding: 0.75rem 0 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 820px) {
+      .app-layout { flex-direction: column-reverse; }
+      .preview-panel { width: 100%; }
+      .canvas-wrap, #previewCanvas { width: 100%; height: auto; aspect-ratio: 1; }
+      .selector-layout { flex-direction: column; }
+      .main-selectors, .auto-selectors { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -462,128 +535,168 @@
   <h1>Token<span>ificator</span></h1>
   <p class="subtitle">Portrait &amp; token generator for Foundry VTT</p>
 
-  <div class="field">
-    <label>Input — file or folder</label>
-    <div class="input-row">
-      <input type="text" id="inputPath" placeholder="C:\portraits\Goblin, Archer.png" />
-      <button onclick="browse('file')">File</button>
-      <button onclick="browse('folder')">Folder</button>
-    </div>
-    <p class="hint">Single image or a folder of images — PNG, JPG, WebP and more</p>
-  </div>
+  <div class="app-layout">
 
-  <div class="field">
-    <label>Output folder <span style="color:#555">(optional)</span></label>
-    <div class="input-row">
-      <input type="text" id="outputPath" placeholder="Leave empty to save next to source" />
-      <button onclick="browse('output')">Browse</button>
-    </div>
-  </div>
+    <!-- ── Left: interactive preview ── -->
+    <div class="preview-panel">
+      <div class="preview-label">Preview</div>
 
-  <!-- 6 selector columns -->
-  <div class="selector-row">
-
-    <div class="selector-col">
-      <div class="col-label">Mode</div>
-      <button class="sel-btn" onclick="openPicker('mode')">
-        <div class="sel-visual" id="sv-mode">
-          <img id="mode-img" src="/mode-images/both.png" alt="" onerror="this.style.display='none'">
-          <div class="sel-fallback" id="mode-fallback">P+T</div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="previewCanvas" width="420" height="420"></canvas>
+        <div class="canvas-placeholder" id="canvasPlaceholder">
+          <span>Select an image file</span>
+          <span style="display:block">to see a preview here</span>
         </div>
-        <span class="sel-name" id="sn-mode">Portrait + Token</span>
-      </button>
+      </div>
+
+      <div class="canvas-hint">Drag to pan &nbsp;·&nbsp; Scroll to zoom</div>
+
+      <div class="preview-btns">
+        <button id="btnPrepare" onclick="runPrepare()">Remove BG &amp; Preview</button>
+        <button id="btnReset" onclick="resetView()" disabled>Reset</button>
+      </div>
+
+      <div class="preview-meta" id="previewMeta">No image loaded</div>
     </div>
 
-    <div class="selector-col">
-      <div class="col-label">Mask</div>
-      <button class="sel-btn" onclick="openPicker('mask')">
-        <div class="sel-visual">
-          <img id="maskThumb" src="/masks/bottom-half.png" alt="mask" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;">
+    <!-- ── Right: controls ── -->
+    <div class="controls-panel">
+
+      <div class="field">
+        <label>Input — file or folder</label>
+        <div class="input-row">
+          <input type="text" id="inputPath" placeholder="C:\portraits\Wizard.png"
+                 oninput="onInputChange()" />
+          <button onclick="browse('file')">File</button>
+          <button onclick="browse('folder')">Folder</button>
         </div>
-        <span class="sel-name" id="sn-mask">bottom-half</span>
-      </button>
-    </div>
+        <p class="hint">Single image or a folder — PNG, JPG, WebP, and more</p>
+      </div>
 
-    <div class="selector-col">
-      <div class="col-label">Size</div>
-      <button class="sel-btn" onclick="openPicker('size')">
-        <div class="sel-visual sel-text">
-          <span class="sel-big" id="sv-size">512</span>
-          <span class="sel-unit">px</span>
+      <div class="field">
+        <label>Output folder <span style="color:#555">(optional)</span></label>
+        <div class="input-row">
+          <input type="text" id="outputPath" placeholder="Leave empty to save next to source" />
+          <button onclick="browse('output')">Browse</button>
         </div>
-        <span class="sel-name" id="sn-size">512 px</span>
-      </button>
-    </div>
+      </div>
 
-    <div class="selector-col">
-      <div class="col-label">Face Crop</div>
-      <button class="sel-btn" onclick="openPicker('crop')">
-        <div class="sel-visual sel-text">
-          <span class="sel-big" id="sv-crop">OFF</span>
+      <!-- Selectors: 2×2 main + Automatic section -->
+      <div class="selector-layout">
+
+        <div class="main-selectors">
+
+          <div class="selector-col">
+            <div class="col-label">Mode</div>
+            <button class="sel-btn" onclick="openPicker('mode')">
+              <div class="sel-visual" id="sv-mode">
+                <img id="mode-img" src="/mode-images/both.png" alt="" onerror="this.style.display='none'">
+                <div class="sel-fallback" id="mode-fallback">P+T</div>
+              </div>
+              <span class="sel-name" id="sn-mode">Portrait + Token</span>
+            </button>
+          </div>
+
+          <div class="selector-col">
+            <div class="col-label">Mask</div>
+            <button class="sel-btn" onclick="openPicker('mask')">
+              <div class="sel-visual">
+                <img id="maskThumb" src="/masks/bottom-half.png" alt="mask"
+                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;">
+              </div>
+              <span class="sel-name" id="sn-mask">bottom-half</span>
+            </button>
+          </div>
+
+          <div class="selector-col">
+            <div class="col-label">Frame</div>
+            <button class="sel-btn" onclick="openPicker('frame')">
+              <div class="sel-visual" id="sv-frame">
+                <img id="frame-img" src="" alt="" style="display:none" onerror="this.style.display='none'">
+                <div class="sel-fallback" id="frame-fallback">None</div>
+              </div>
+              <span class="sel-name" id="sn-frame">None</span>
+            </button>
+          </div>
+
+          <div class="selector-col">
+            <div class="col-label">Size</div>
+            <button class="sel-btn" onclick="openPicker('size')">
+              <div class="sel-visual sel-text">
+                <span class="sel-big" id="sv-size">512</span>
+                <span class="sel-unit">px</span>
+              </div>
+              <span class="sel-name" id="sn-size">512 px</span>
+            </button>
+          </div>
+
+        </div><!-- /main-selectors -->
+
+        <fieldset class="auto-section" id="autoSection">
+          <legend>Automatic</legend>
+          <div class="auto-selectors">
+
+            <div class="selector-col">
+              <div class="col-label">Face Crop</div>
+              <button class="sel-btn" onclick="openPicker('crop')">
+                <div class="sel-visual sel-text">
+                  <span class="sel-big" id="sv-crop">OFF</span>
+                </div>
+                <span class="sel-name" id="sn-crop">Off</span>
+              </button>
+            </div>
+
+            <div class="selector-col">
+              <div class="col-label">Zoom</div>
+              <button class="sel-btn" onclick="openPicker('zoom')">
+                <div class="sel-visual" id="sv-zoom">
+                  <img id="zoom-img" src="/zoom-images/zoom_1.webp" alt="" onerror="this.style.display='none'">
+                  <div class="sel-fallback" id="zoom-fallback">Wide</div>
+                </div>
+                <span class="sel-name" id="sn-zoom">Loose</span>
+              </button>
+            </div>
+
+          </div><!-- /auto-selectors -->
+          <p class="hint" style="margin:0"><b>Face Crop</b>: Top = no AI &nbsp;|&nbsp; MediaPipe / InsightFace = AI detection<br>
+          <b>Zoom</b>: token crop only — ignored in manual mode</p>
+        </fieldset>
+
+      </div><!-- /selector-layout -->
+
+      <div class="split-row" id="splitRow">
+        <div class="split-label-row">
+          <span>Overflow line</span>
+          <span id="splitLabel">50%</span>
         </div>
-        <span class="sel-name" id="sn-crop">Off</span>
-      </button>
-    </div>
+        <input type="range" id="splitY" min="10" max="90" value="50" step="5"
+               oninput="document.getElementById('splitLabel').textContent=this.value+'%'; onOverlaySettingChange()">
+        <p class="hint" style="margin-top:0.3rem">Character pixels above this line pop over the frame.</p>
+      </div>
 
-    <div class="selector-col">
-      <div class="col-label">Zoom on Face</div>
-      <button class="sel-btn" onclick="openPicker('zoom')">
-        <div class="sel-visual" id="sv-zoom">
-          <img id="zoom-img" src="/zoom-images/zoom_1.webp" alt="" onerror="this.style.display='none'">
-          <div class="sel-fallback" id="zoom-fallback">Wide</div>
-        </div>
-        <span class="sel-name" id="sn-zoom">Loose</span>
-      </button>
-    </div>
+      <div class="toggle-row">
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleBgPortrait" checked />
+          <span class="toggle-track"></span>
+          Remove BG — Portrait
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleBgToken" checked />
+          <span class="toggle-track"></span>
+          Remove BG — Token
+        </label>
+      </div>
 
-    <div class="selector-col">
-      <div class="col-label">Frame</div>
-      <button class="sel-btn" onclick="openPicker('frame')">
-        <div class="sel-visual" id="sv-frame">
-          <img id="frame-img" src="" alt="" style="display:none" onerror="this.style.display='none'">
-          <div class="sel-fallback" id="frame-fallback">None</div>
-        </div>
-        <span class="sel-name" id="sn-frame">None</span>
-      </button>
-    </div>
+      <button class="btn-primary" id="btnProcess" onclick="runProcess()">Generate</button>
+      <div id="status"></div>
 
-  </div>
+    </div><!-- /controls-panel -->
+  </div><!-- /app-layout -->
 
-  <div class="split-row" id="splitRow">
-    <div class="split-label-row">
-      <span>Overflow line</span>
-      <span id="splitLabel">50%</span>
-    </div>
-    <input type="range" id="splitY" min="10" max="90" value="50" step="5"
-           oninput="document.getElementById('splitLabel').textContent = this.value + '%'">
-    <p class="hint" style="margin-top:0.3rem">Character pixels above this line pop over the frame.</p>
-  </div>
-
-  <p class="hint">
-    <b>Top Crop</b>: no AI, crops from top &nbsp;|&nbsp;
-    <b>MediaPipe / InsightFace</b>: AI face detection &nbsp;|&nbsp;
-    <b>Zoom on Face</b>: Wide = head+torso, Bust = head+shoulders, Face = close-up (token only)
-  </p>
-
-  <div class="toggle-row">
-    <label class="toggle-label">
-      <input type="checkbox" id="toggleBgPortrait" checked />
-      <span class="toggle-track"></span>
-      Remove BG — Portrait
-    </label>
-    <label class="toggle-label">
-      <input type="checkbox" id="toggleBgToken" checked />
-      <span class="toggle-track"></span>
-      Remove BG — Token
-    </label>
-  </div>
-
-  <button class="btn-primary" id="btnProcess" onclick="runProcess()">Process</button>
-  <div id="status"></div>
   <div id="results"></div>
 </div>
 
-<!-- Unified picker overlay -->
+<!-- Picker overlay -->
 <div id="pickerOverlay" class="overlay" onclick="closePickerOutside(event)">
   <div class="picker-modal">
     <div class="picker-header">
@@ -595,7 +708,7 @@
   </div>
 </div>
 
-<!-- Image preview lightbox -->
+<!-- Image lightbox -->
 <div id="imgOverlay" onclick="closeImgOverlay(event)">
   <div class="img-modal" onclick="event.stopPropagation()">
     <button class="img-close" onclick="closeImgOverlay()">×</button>
@@ -605,7 +718,10 @@
 </div>
 
 <script>
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── Constants ──────────────────────────────────────────────────────────────
+  const CANVAS_PX = 420;
+
+  // ── Selector state ─────────────────────────────────────────────────────────
   const SEL = {
     mode:  { value: 'both',            display: 'P+T',   label: 'Portrait + Token' },
     mask:  { value: 'bottom-half.png', display: '',      label: 'bottom-half'      },
@@ -615,15 +731,32 @@
     frame: { value: 'none',            display: 'None',  label: 'None'             },
   };
 
+  // ── Preview state ──────────────────────────────────────────────────────────
+  const preview = {
+    nobgImg:      null,   // HTMLImageElement loaded from /tmp/...
+    naturalW:     0,
+    naturalH:     0,
+    preparedPath: null,   // tmp file path (on disk, for backend)
+    preparedInput: null,  // original input path this was prepared from
+    panX:         0,      // px offset from canvas centre (canvas-space)
+    panY:         0,
+    userScale:    1.0,
+    isDragging:   false,
+    dragStart:    null,
+    maskCanvas:   null,   // offscreen canvas with luminance→alpha mask
+    frameImg:     null,   // HTMLImageElement for frame overlay
+  };
+
+  // ── Picker config ──────────────────────────────────────────────────────────
   const PICKER_CFG = {
     mode: {
       title: 'Select Mode',
       dynamic: false,
       options: [
-        { value: 'both',     label: 'Portrait + Token', display: 'P+T',     img: '/mode-images/both.png',    hint: '' },
-        { value: 'portrait', label: 'Portrait only',    display: 'Portrait', img: '/mode-images/portrait.png',hint: '' },
-        { value: 'token',    label: 'Token only',       display: 'Token',    img: '/mode-images/token.png',   hint: '' },
-        { value: 'nobg',     label: 'Remove BG',        display: 'No BG',    img: '/mode-images/nobg.png',    hint: '' },
+        { value: 'both',     label: 'Portrait + Token', display: 'P+T',      img: '/mode-images/both.png',     hint: '' },
+        { value: 'portrait', label: 'Portrait only',    display: 'Portrait',  img: '/mode-images/portrait.png', hint: '' },
+        { value: 'token',    label: 'Token only',       display: 'Token',     img: '/mode-images/token.png',    hint: '' },
+        { value: 'nobg',     label: 'Remove BG',        display: 'No BG',     img: '/mode-images/nobg.png',     hint: '' },
       ],
     },
     mask: {
@@ -657,24 +790,394 @@
       title: 'Face Crop',
       dynamic: false,
       options: [
-        { value: 'none',        label: 'Off',         display: 'OFF', hint: 'No cropping — use the full image as-is' },
-        { value: 'top',         label: 'Top Crop',    display: 'TOP', hint: 'Simple crop from the top, no AI required' },
-        { value: 'mediapipe',   label: 'MediaPipe',   display: 'MP',  hint: 'Google face detection — fast, runs fully offline' },
-        { value: 'insightface', label: 'InsightFace', display: 'IF',  hint: 'Deep learning face detection — highly accurate' },
+        { value: 'none',        label: 'Off',         display: 'OFF', hint: 'No cropping — use full image as-is' },
+        { value: 'top',         label: 'Top Crop',    display: 'TOP', hint: 'Simple crop from top, no AI required' },
+        { value: 'mediapipe',   label: 'MediaPipe',   display: 'MP',  hint: 'Google face detection — fast, offline' },
+        { value: 'insightface', label: 'InsightFace', display: 'IF',  hint: 'Deep learning face detection — accurate' },
       ],
     },
     zoom: {
       title: 'Zoom on Face (token only)',
       dynamic: false,
       options: [
-        { value: '1', label: 'Wide', display: 'Wide', img: '/zoom-images/zoom_1.webp', hint: 'Wide — head + full torso visible' },
+        { value: '1', label: 'Wide', display: 'Wide', img: '/zoom-images/zoom_1.webp', hint: 'Wide — head + torso' },
         { value: '3', label: 'Bust', display: 'Bust', img: '/zoom-images/zoom_3.webp', hint: 'Bust — head + shoulders' },
-        { value: '5', label: 'Face', display: 'Face', img: '/zoom-images/zoom_5.webp', hint: 'Face — tight close-up, face fills the frame' },
+        { value: '5', label: 'Face', display: 'Face', img: '/zoom-images/zoom_5.webp', hint: 'Face — tight close-up' },
       ],
     },
   };
 
   let currentPicker = null;
+
+  // ── Canvas rendering ───────────────────────────────────────────────────────
+  function drawCheckerboard(ctx) {
+    const s = 14;
+    for (let r = 0; r < CANVAS_PX / s; r++) {
+      for (let c = 0; c < CANVAS_PX / s; c++) {
+        ctx.fillStyle = (r + c) % 2 === 0 ? '#222' : '#2e2e2e';
+        ctx.fillRect(c * s, r * s, s, s);
+      }
+    }
+  }
+
+  function renderCanvas() {
+    const canvas = document.getElementById('previewCanvas');
+    const ctx    = canvas.getContext('2d');
+    ctx.clearRect(0, 0, CANVAS_PX, CANVAS_PX);
+    drawCheckerboard(ctx);
+
+    if (!preview.nobgImg) return;
+
+    const baseScale = CANVAS_PX / Math.min(preview.naturalW, preview.naturalH);
+    const scale = baseScale * preview.userScale;
+    const w = preview.naturalW * scale;
+    const h = preview.naturalH * scale;
+    const x = CANVAS_PX / 2 + preview.panX - w / 2;
+    const y = CANVAS_PX / 2 + preview.panY - h / 2;
+
+    // Draw char (possibly masked) to offscreen canvas
+    const charCanvas = document.createElement('canvas');
+    charCanvas.width = charCanvas.height = CANVAS_PX;
+    const charCtx = charCanvas.getContext('2d');
+    charCtx.drawImage(preview.nobgImg, x, y, w, h);
+
+    if (preview.maskCanvas) {
+      charCtx.globalCompositeOperation = 'destination-in';
+      charCtx.drawImage(preview.maskCanvas, 0, 0);
+    }
+
+    // Layer 1: masked char
+    ctx.drawImage(charCanvas, 0, 0);
+
+    // Layer 2 + 3: frame then overflow
+    if (preview.frameImg) {
+      ctx.drawImage(preview.frameImg, 0, 0, CANVAS_PX, CANVAS_PX);
+
+      // Char overflow: top portion of unmasked char pops above frame
+      const splitPx = CANVAS_PX * parseInt(document.getElementById('splitY').value) / 100;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, CANVAS_PX, splitPx);
+      ctx.clip();
+      ctx.drawImage(preview.nobgImg, x, y, w, h);
+      ctx.restore();
+    }
+  }
+
+  // Convert a grayscale mask PNG (luminance) into a canvas with luminance→alpha
+  function loadMaskCanvas(maskName) {
+    if (!maskName || maskName === 'none') {
+      preview.maskCanvas = null;
+      renderCanvas();
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const oc  = document.createElement('canvas');
+      oc.width  = oc.height = CANVAS_PX;
+      const ctx = oc.getContext('2d');
+      ctx.drawImage(img, 0, 0, CANVAS_PX, CANVAS_PX);
+      const data = ctx.getImageData(0, 0, CANVAS_PX, CANVAS_PX);
+      for (let i = 0; i < data.data.length; i += 4) {
+        data.data[i + 3] = data.data[i]; // R channel → alpha
+        data.data[i] = data.data[i + 1] = data.data[i + 2] = 255;
+      }
+      ctx.putImageData(data, 0, 0);
+      preview.maskCanvas = oc;
+      renderCanvas();
+    };
+    img.onerror = () => { preview.maskCanvas = null; renderCanvas(); };
+    img.src = '/masks/' + encodeURIComponent(maskName);
+  }
+
+  function loadFrameImg(frameName) {
+    if (!frameName || frameName === 'none') {
+      preview.frameImg = null;
+      renderCanvas();
+      return;
+    }
+    const img = new Image();
+    img.onload  = () => { preview.frameImg = img; renderCanvas(); };
+    img.onerror = () => { preview.frameImg = null; renderCanvas(); };
+    img.src = '/frames/' + encodeURIComponent(frameName);
+  }
+
+  // Called when mask / frame / splitY changes
+  function onOverlaySettingChange() {
+    if (!preview.nobgImg) return;
+    renderCanvas();
+  }
+
+  // ── Canvas interaction ─────────────────────────────────────────────────────
+  function initCanvas() {
+    const wrap = document.getElementById('canvasWrap');
+
+    wrap.addEventListener('mousedown', e => {
+      if (!preview.nobgImg) return;
+      preview.isDragging = true;
+      preview.dragStart  = { x: e.clientX, y: e.clientY };
+      preview.dragStartPan = { x: preview.panX, y: preview.panY };
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!preview.isDragging) return;
+      preview.panX = preview.dragStartPan.x + (e.clientX - preview.dragStart.x);
+      preview.panY = preview.dragStartPan.y + (e.clientY - preview.dragStart.y);
+      renderCanvas();
+      updatePreviewMeta();
+    });
+
+    window.addEventListener('mouseup', () => { preview.isDragging = false; });
+
+    wrap.addEventListener('wheel', e => {
+      if (!preview.nobgImg) return;
+      e.preventDefault();
+      const factor = e.deltaY > 0 ? 0.92 : 1.09;
+      preview.userScale = Math.max(0.05, Math.min(20, preview.userScale * factor));
+      renderCanvas();
+      updatePreviewMeta();
+    }, { passive: false });
+
+    // Touch support
+    let lastTouch = null;
+    wrap.addEventListener('touchstart', e => {
+      if (!preview.nobgImg || e.touches.length !== 1) return;
+      lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY,
+                    panX: preview.panX, panY: preview.panY };
+      e.preventDefault();
+    }, { passive: false });
+    wrap.addEventListener('touchmove', e => {
+      if (!lastTouch || e.touches.length !== 1) return;
+      preview.panX = lastTouch.panX + (e.touches[0].clientX - lastTouch.x);
+      preview.panY = lastTouch.panY + (e.touches[0].clientY - lastTouch.y);
+      renderCanvas();
+      e.preventDefault();
+    }, { passive: false });
+    wrap.addEventListener('touchend', () => { lastTouch = null; });
+  }
+
+  function updateAutoSection() {
+    const inputPath = document.getElementById('inputPath').value.trim();
+    const isManual  = !!(preview.preparedInput && preview.preparedInput === inputPath && preview.preparedPath);
+    document.getElementById('autoSection').disabled = isManual;
+  }
+
+  function updatePreviewMeta() {
+    const el = document.getElementById('previewMeta');
+    if (!preview.nobgImg) { el.textContent = 'No image loaded'; el.className = 'preview-meta'; return; }
+    const pct = Math.round(preview.userScale * 100);
+    const px  = Math.round(preview.panX);
+    const py  = Math.round(preview.panY);
+    el.textContent = `zoom ${pct}%  ·  pan (${px > 0 ? '+' : ''}${px}, ${py > 0 ? '+' : ''}${py})  ·  manual mode`;
+    el.className   = 'preview-meta manual';
+  }
+
+  // ── Prepare (remove BG) ────────────────────────────────────────────────────
+  async function runPrepare() {
+    const inputPath = document.getElementById('inputPath').value.trim();
+    if (!inputPath) {
+      document.getElementById('status').textContent = 'Please select an input file first.';
+      return;
+    }
+    const btn = document.getElementById('btnPrepare');
+    btn.disabled    = true;
+    btn.textContent = 'Removing BG…';
+    document.getElementById('status').textContent = '';
+
+    try {
+      const res  = await fetch('/prepare', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ input: inputPath }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        document.getElementById('status').textContent = `Error: ${data.error}`;
+        return;
+      }
+
+      // Store state
+      preview.preparedPath  = data.path;
+      preview.preparedInput = inputPath;
+      preview.naturalW      = data.width;
+      preview.naturalH      = data.height;
+      preview.panX          = 0;
+      preview.panY          = 0;
+      preview.userScale     = 1.0;
+
+      // Load nobg image
+      preview.nobgImg = new Image();
+      await new Promise(r => {
+        preview.nobgImg.onload  = r;
+        preview.nobgImg.onerror = r;
+        preview.nobgImg.src     = data.url;
+      });
+
+      // Load current overlays
+      loadMaskCanvas(SEL.mask.value);
+      loadFrameImg(SEL.frame.value);
+
+      // Show canvas
+      document.getElementById('canvasPlaceholder').classList.add('hidden');
+      document.getElementById('canvasWrap').classList.add('has-image');
+      document.getElementById('btnReset').disabled = false;
+      updatePreviewMeta();
+      updateAutoSection();
+
+    } catch (err) {
+      document.getElementById('status').textContent = `Prepare failed: ${err.message}`;
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Remove BG & Preview';
+    }
+  }
+
+  function resetView() {
+    preview.panX      = 0;
+    preview.panY      = 0;
+    preview.userScale = 1.0;
+    renderCanvas();
+    updatePreviewMeta();
+  }
+
+  const SUPPORTED_IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|tiff?)$/i;
+
+  async function onInputChange() {
+    const current = document.getElementById('inputPath').value.trim();
+
+    // If the prepared image no longer matches, drop manual-mode state
+    if (current !== preview.preparedInput) {
+      preview.preparedInput = null;
+      preview.preparedPath  = null;
+      updateAutoSection();
+    }
+
+    // Load raw preview for single image files
+    if (current && SUPPORTED_IMG_EXT.test(current)) {
+      const url = `/serve?path=${encodeURIComponent(current)}`;
+      const img = new Image();
+      const ok  = await new Promise(r => { img.onload = () => r(true); img.onerror = () => r(false); img.src = url; });
+      if (ok) {
+        preview.nobgImg  = img;
+        preview.naturalW = img.naturalWidth;
+        preview.naturalH = img.naturalHeight;
+        preview.panX = preview.panY = 0;
+        preview.userScale = 1.0;
+        document.getElementById('canvasPlaceholder').classList.add('hidden');
+        document.getElementById('canvasWrap').classList.add('has-image');
+        document.getElementById('btnReset').disabled = false;
+        renderCanvas();
+        const meta = document.getElementById('previewMeta');
+        meta.textContent = 'Raw preview — click Remove BG & Preview to process';
+        meta.className   = 'preview-meta';
+        return;
+      }
+    }
+
+    // Empty / folder / unresolvable — go back to placeholder
+    if (!preview.preparedInput) {
+      preview.nobgImg  = null;
+      preview.naturalW = preview.naturalH = 0;
+      document.getElementById('canvasPlaceholder').classList.remove('hidden');
+      document.getElementById('canvasWrap').classList.remove('has-image');
+      document.getElementById('btnReset').disabled = true;
+      renderCanvas();
+      updatePreviewMeta();
+    }
+  }
+
+  // ── Generate ───────────────────────────────────────────────────────────────
+  async function runProcess() {
+    const inputPath  = document.getElementById('inputPath').value.trim();
+    const outputPath = document.getElementById('outputPath').value.trim();
+    const btn        = document.getElementById('btnProcess');
+    const statusEl   = document.getElementById('status');
+    const resultsEl  = document.getElementById('results');
+
+    if (!inputPath) { statusEl.textContent = 'Please select an input file or folder.'; return; }
+
+    btn.disabled       = true;
+    resultsEl.innerHTML = '';
+
+    // Use manual transform only for single-file matching the prepared image
+    const isManual = preview.nobgImg &&
+                     preview.preparedInput === inputPath &&
+                     preview.preparedPath;
+    const transform = isManual ? {
+      pan_x:      preview.panX / CANVAS_PX,
+      pan_y:      preview.panY / CANVAS_PX,
+      user_scale: preview.userScale,
+      nobg_path:  preview.preparedPath,
+    } : null;
+
+    statusEl.innerHTML = isManual
+      ? '<em>Generating with manual positioning…</em>'
+      : '<em>Generating with auto pipeline…</em>';
+
+    try {
+      const res  = await fetch('/process', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          input:              inputPath,
+          output:             outputPath,
+          mode:               SEL.mode.value,
+          mask:               SEL.mask.value,
+          size:               parseInt(SEL.size.value),
+          crop_backend:       SEL.crop.value,
+          crop_zoom:          parseInt(SEL.zoom.value),
+          remove_bg_portrait: document.getElementById('toggleBgPortrait').checked,
+          remove_bg_token:    document.getElementById('toggleBgToken').checked,
+          frame:              SEL.frame.value,
+          split_y:            parseInt(document.getElementById('splitY').value) / 100,
+          transform:          transform,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) { statusEl.textContent = `Error: ${data.error}`; return; }
+      const mode = isManual ? 'manual' : 'auto';
+      statusEl.textContent = `Done — ${data.results.length} image(s) processed (${mode}).`;
+      renderResults(data.results, data.errors || []);
+    } catch (err) {
+      statusEl.textContent = `Request failed: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Results ────────────────────────────────────────────────────────────────
+  function renderResults(results, errors) {
+    const el = document.getElementById('results');
+    if (!results.length && !errors.length) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:.85rem">No images found.</p>';
+      return;
+    }
+    let html = '<h2>Results</h2>';
+    for (const r of results) {
+      const files = ['portrait', 'token', 'nobg']
+        .filter(k => r[k])
+        .map(k => {
+          const name = r[k].split(/[\\/]/).pop();
+          return `<span class="result-badge" data-path="${escAttr(r[k])}" data-name="${escAttr(name)}">${escHtml(name)}</span>`;
+        }).join('');
+      html += `
+        <div class="result-item">
+          <div class="result-icon">✓</div>
+          <div>
+            <div class="result-name">${escHtml(r.name)}</div>
+            <div class="result-files">${files}</div>
+          </div>
+        </div>`;
+    }
+    for (const err of errors) {
+      html += `<div class="error-item">⚠ ${escHtml(err)}</div>`;
+    }
+    el.innerHTML = html;
+    el.querySelectorAll('.result-badge').forEach(b => {
+      b.addEventListener('click', () => openImgPreview(b.dataset.path, b.dataset.name));
+    });
+  }
 
   // ── Picker ─────────────────────────────────────────────────────────────────
   async function openPicker(type) {
@@ -684,8 +1187,8 @@
 
     let opts = cfg.options;
     if (cfg.dynamic) {
-      const res  = await fetch(cfg.fetchUrl);
-      const data = await res.json();
+      const res   = await fetch(cfg.fetchUrl);
+      const data  = await res.json();
       const items = data[cfg.listKey].map(name => ({
         value:   name,
         label:   name.replace(/\.png$/i, ''),
@@ -726,9 +1229,9 @@
     }).join('');
 
     grid.querySelectorAll('.popt').forEach(el => {
-      el.addEventListener('click',       () => selectOption(el));
-      el.addEventListener('mouseenter',  () => { document.getElementById('pickerHint').textContent = el.dataset.hint || ''; });
-      el.addEventListener('mouseleave',  () => { document.getElementById('pickerHint').textContent = ''; });
+      el.addEventListener('click',      () => selectOption(el));
+      el.addEventListener('mouseenter', () => { document.getElementById('pickerHint').textContent = el.dataset.hint || ''; });
+      el.addEventListener('mouseleave', () => { document.getElementById('pickerHint').textContent = ''; });
     });
 
     document.getElementById('pickerHint').textContent = '';
@@ -746,6 +1249,10 @@
     SEL[type].label   = label;
     updateButton(type, value, display, label);
     closePicker();
+
+    // Reload overlays if mask or frame changed
+    if (type === 'mask')  loadMaskCanvas(value);
+    if (type === 'frame') loadFrameImg(value);
   }
 
   function updateButton(type, value, display, label) {
@@ -796,87 +1303,10 @@
     const data = await res.json();
     if (!data.path) return;
     document.getElementById(type === 'output' ? 'outputPath' : 'inputPath').value = data.path;
+    if (type !== 'output') onInputChange();
   }
 
-  // ── Process ────────────────────────────────────────────────────────────────
-  async function runProcess() {
-    const inputPath  = document.getElementById('inputPath').value.trim();
-    const outputPath = document.getElementById('outputPath').value.trim();
-    const btn        = document.getElementById('btnProcess');
-    const statusEl   = document.getElementById('status');
-    const resultsEl  = document.getElementById('results');
-
-    if (!inputPath) { statusEl.textContent = 'Please select an input file or folder.'; return; }
-
-    btn.disabled        = true;
-    statusEl.innerHTML  = '<em>Processing… this may take a moment per image.</em>';
-    resultsEl.innerHTML = '';
-
-    try {
-      const res  = await fetch('/process', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          input:               inputPath,
-          output:              outputPath,
-          mode:                SEL.mode.value,
-          mask:                SEL.mask.value,
-          size:                parseInt(SEL.size.value),
-          crop_backend:        SEL.crop.value,
-          crop_zoom:           parseInt(SEL.zoom.value),
-          remove_bg_portrait:  document.getElementById('toggleBgPortrait').checked,
-          remove_bg_token:     document.getElementById('toggleBgToken').checked,
-          frame:               SEL.frame.value,
-          split_y:             parseInt(document.getElementById('splitY').value) / 100,
-        }),
-      });
-      const data = await res.json();
-      if (data.error) { statusEl.textContent = `Error: ${data.error}`; return; }
-      statusEl.textContent = `Done — ${data.results.length} image(s) processed.`;
-      renderResults(data.results, data.errors || []);
-    } catch (err) {
-      statusEl.textContent = `Request failed: ${err.message}`;
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  // ── Results ────────────────────────────────────────────────────────────────
-  function renderResults(results, errors) {
-    const el = document.getElementById('results');
-    if (!results.length && !errors.length) {
-      el.innerHTML = '<p style="color:var(--muted);font-size:.85rem">No images found.</p>';
-      return;
-    }
-
-    let html = '<h2>Results</h2>';
-    for (const r of results) {
-      const files = ['portrait', 'token', 'nobg']
-        .filter(k => r[k])
-        .map(k => {
-          const name = r[k].split(/[\\/]/).pop();
-          return `<span class="result-badge" data-path="${escAttr(r[k])}" data-name="${escAttr(name)}">${escHtml(name)}</span>`;
-        }).join('');
-      html += `
-        <div class="result-item">
-          <div class="result-icon">✓</div>
-          <div>
-            <div class="result-name">${escHtml(r.name)}</div>
-            <div class="result-files">${files}</div>
-          </div>
-        </div>`;
-    }
-    for (const err of errors) {
-      html += `<div class="error-item">⚠ ${escHtml(err)}</div>`;
-    }
-
-    el.innerHTML = html;
-    el.querySelectorAll('.result-badge').forEach(badge => {
-      badge.addEventListener('click', () => openImgPreview(badge.dataset.path, badge.dataset.name));
-    });
-  }
-
-  // ── Image preview ──────────────────────────────────────────────────────────
+  // ── Image lightbox ─────────────────────────────────────────────────────────
   function openImgPreview(path, name) {
     document.getElementById('imgPreview').src = '/serve?path=' + encodeURIComponent(path);
     document.getElementById('imgName').textContent = name;
@@ -896,6 +1326,10 @@
   function escAttr(s) {
     return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  initCanvas();
+  renderCanvas(); // draws checkerboard on load
 </script>
 </body>
 </html>
