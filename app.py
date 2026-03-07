@@ -10,7 +10,7 @@ from flask import Flask, jsonify, send_from_directory, send_file, request
 import tkinter
 import tkinter.filedialog
 
-from token_processor import process_file, process_folder, SUPPORTED_EXT, MASKS_DIR, DEFAULT_SIZE, VALID_SIZES
+from token_processor import process_file, process_folder, SUPPORTED_EXT, MASKS_DIR, FRAMES_DIR, DEFAULT_SIZE, VALID_SIZES
 
 app = Flask(__name__, static_folder=None)
 TEMPLATES_DIR   = Path(__file__).parent / "templates"
@@ -18,6 +18,7 @@ MODE_IMAGES_DIR = Path(__file__).parent / "mode_images"
 ZOOM_IMAGES_DIR = Path(__file__).parent / "zoom_images"
 MODE_IMAGES_DIR.mkdir(exist_ok=True)
 ZOOM_IMAGES_DIR.mkdir(exist_ok=True)
+FRAMES_DIR.mkdir(exist_ok=True)
 
 
 @app.get("/")
@@ -59,6 +60,17 @@ def list_masks():
 @app.get("/masks/<filename>")
 def serve_mask(filename):
     return send_from_directory(MASKS_DIR, filename)
+
+
+@app.get("/frames")
+def list_frames():
+    frames = sorted(p.name for p in FRAMES_DIR.glob("*.png"))
+    return jsonify({"frames": frames})
+
+
+@app.get("/frames/<filename>")
+def serve_frame(filename):
+    return send_from_directory(FRAMES_DIR, filename)
 
 
 @app.get("/open-folder")
@@ -107,14 +119,18 @@ def process():
     crop_zoom           = int(data.get("crop_zoom", 1))
     remove_bg_portrait  = bool(data.get("remove_bg_portrait", True))
     remove_bg_token     = bool(data.get("remove_bg_token", True))
+    frame_name   = data.get("frame", "none")
+    split_y      = float(data.get("split_y", 0.5))
     if size not in VALID_SIZES:
         size = DEFAULT_SIZE
     if crop_backend not in ("none", "top", "mediapipe", "insightface"):
         crop_backend = "none"
     if crop_zoom not in (1, 3, 5):
         crop_zoom = 1
+    split_y = max(0.1, min(0.9, split_y))
     out_dir    = Path(output_str) if output_str else None
     mask_path  = MASKS_DIR / mask_name if mask_name else None
+    frame_path = FRAMES_DIR / frame_name if frame_name and frame_name != "none" else None
 
     results = []
     errors  = []
@@ -126,11 +142,13 @@ def process():
         if input_path.is_dir():
             file_results = process_folder(input_path, out_dir, mode, mask_path, size,
                                           crop_backend, crop_zoom,
-                                          remove_bg_portrait, remove_bg_token)
+                                          remove_bg_portrait, remove_bg_token,
+                                          frame_path, split_y)
         else:
             file_results = [process_file(input_path, out_dir, mode, mask_path, size,
                                          crop_backend, crop_zoom,
-                                         remove_bg_portrait, remove_bg_token)]
+                                         remove_bg_portrait, remove_bg_token,
+                                         frame_path, split_y)]
 
         for r in file_results:
             entry = {}
