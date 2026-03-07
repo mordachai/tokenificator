@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tokenificator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #1a1a2e;
+      --surface: #16213e;
+      --border:  #0f3460;
+      --accent:  #e94560;
+      --text:    #eaeaea;
+      --muted:   #888;
+      --radius:  6px;
+      --font:    'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    h1 { font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+    h1 span { color: var(--accent); }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+
+    /* ── Fields ── */
+    .field { margin-bottom: 1.25rem; }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .input-row { display: flex; gap: 0.5rem; }
+    input[type="text"] {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+
+    button {
+      background: var(--border);
+      border: none;
+      border-radius: var(--radius);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.55rem 1rem;
+      transition: background 0.15s;
+    }
+    button:hover { background: #1a4a80; }
+
+    .btn-primary {
+      background: var(--accent);
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+    .btn-primary:hover { background: #c73350; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; background: var(--accent); }
+
+    .hint { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
+
+    /* ── 5-column selector row ── */
+    .selector-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .selector-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .col-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    /* ── Selector button ── */
+    .sel-btn {
+      width: 100%;
+      max-width: 150px;
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0.4rem;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.15s;
+      gap: 0.3rem;
+      overflow: hidden;
+    }
+    .sel-btn:hover { border-color: var(--accent); }
+    .sel-btn.active { border-color: var(--accent); background: #12071a; }
+
+    .sel-visual {
+      flex: 1;
+      width: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+    .sel-visual img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+    .sel-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 0.25rem;
+      z-index: 0;
+    }
+    /* text-only visual (size, crop, zoom) */
+    .sel-text {
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .sel-big {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+    .sel-unit {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+    .sel-name {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      width: 100%;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Picker overlay (unified) ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.open { display: flex; }
+
+    .picker-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      width: min(90vw, 580px);
+    }
+    .picker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .picker-header h3 {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .picker-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.3rem;
+      line-height: 1;
+      padding: 0 0.25rem;
+      cursor: pointer;
+    }
+    .picker-close:hover { color: var(--text); background: none; }
+
+    .picker-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .popt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      padding: 0.35rem;
+      border-radius: var(--radius);
+      border: 2px solid transparent;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .popt:hover  { border-color: var(--border); }
+    .popt.selected { border-color: var(--accent); background: #1a0710; }
+
+    .popt-vis {
+      width: 100px;
+      height: 100px;
+      border-radius: var(--radius);
+      background: var(--bg);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .popt-vis img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+    .popt-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 0.25rem;
+      z-index: 0;
+    }
+    .popt-text {
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .popt-text .popt-big {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .popt-text .popt-unit {
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    .popt-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: center;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .picker-hint-bar {
+      min-height: 1.4rem;
+      margin-top: 0.75rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── Image preview lightbox ── */
+    #imgOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #imgOverlay.open { display: flex; }
+    .img-modal {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+    .img-close {
+      position: absolute;
+      top: -2.2rem;
+      right: 0;
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.1rem 0.4rem;
+    }
+    .img-close:hover { color: #fff; background: none; }
+    #imgPreview {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: var(--radius);
+      /* checkerboard to show transparency */
+      background-color: #2d2d2d;
+      background-image:
+        linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+        linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    #imgName { font-size: 0.78rem; color: var(--muted); font-family: monospace; }
+
+    /* ── Toggle switches ── */
+    .toggle-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label input[type="checkbox"] { display: none; }
+    .toggle-track {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--border);
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: left 0.2s, background 0.2s;
+    }
+    .toggle-label input:checked ~ .toggle-track { background: var(--accent); }
+    .toggle-label input:checked ~ .toggle-track::after { left: 19px; background: #fff; }
+
+    /* ── Results ── */
+    #results { margin-top: 2rem; }
+    #results h2 { font-size: 1rem; color: var(--muted); margin-bottom: 1rem; }
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-item:last-child { border-bottom: none; }
+    .result-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .result-name { font-weight: 600; font-size: 0.95rem; }
+    .result-files { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+    .result-badge {
+      display: inline-block;
+      background: var(--bg);
+      border-radius: 3px;
+      padding: 0.1rem 0.5rem;
+      margin-right: 0.4rem;
+      border: 1px solid var(--border);
+      font-family: monospace;
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .result-badge:hover { border-color: var(--accent); color: var(--accent); }
+    .error-item { color: var(--accent); padding: 0.5rem 0; font-size: 0.85rem; }
+    #status { text-align: center; font-size: 0.9rem; color: var(--muted); padding: 1rem 0 0; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Token<span>ificator</span></h1>
+  <p class="subtitle">Portrait &amp; token generator for Foundry VTT</p>
+
+  <div class="field">
+    <label>Input — file or folder</label>
+    <div class="input-row">
+      <input type="text" id="inputPath" placeholder="C:\portraits\Goblin, Archer.png" />
+      <button onclick="browse('file')">File</button>
+      <button onclick="browse('folder')">Folder</button>
+    </div>
+    <p class="hint">Single image or a folder of images — PNG, JPG, WebP and more</p>
+  </div>
+
+  <div class="field">
+    <label>Output folder <span style="color:#555">(optional)</span></label>
+    <div class="input-row">
+      <input type="text" id="outputPath" placeholder="Leave empty to save next to source" />
+      <button onclick="browse('output')">Browse</button>
+    </div>
+  </div>
+
+  <!-- 5 selector columns -->
+  <div class="selector-row">
+
+    <div class="selector-col">
+      <div class="col-label">Mode</div>
+      <button class="sel-btn" onclick="openPicker('mode')">
+        <div class="sel-visual" id="sv-mode">
+          <img id="mode-img" src="/mode-images/both.png" alt="" onerror="this.style.display='none'">
+          <div class="sel-fallback" id="mode-fallback">P+T</div>
+        </div>
+        <span class="sel-name" id="sn-mode">Portrait + Token</span>
+      </button>
+    </div>
+
+    <div class="selector-col">
+      <div class="col-label">Mask</div>
+      <button class="sel-btn" onclick="openPicker('mask')">
+        <div class="sel-visual">
+          <img id="maskThumb" src="/masks/bottom-half.png" alt="mask" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;">
+        </div>
+        <span class="sel-name" id="sn-mask">bottom-half</span>
+      </button>
+    </div>
+
+    <div class="selector-col">
+      <div class="col-label">Size</div>
+      <button class="sel-btn" onclick="openPicker('size')">
+        <div class="sel-visual sel-text">
+          <span class="sel-big" id="sv-size">512</span>
+          <span class="sel-unit">px</span>
+        </div>
+        <span class="sel-name" id="sn-size">512 px</span>
+      </button>
+    </div>
+
+    <div class="selector-col">
+      <div class="col-label">Face Crop</div>
+      <button class="sel-btn" onclick="openPicker('crop')">
+        <div class="sel-visual sel-text">
+          <span class="sel-big" id="sv-crop">OFF</span>
+        </div>
+        <span class="sel-name" id="sn-crop">Off</span>
+      </button>
+    </div>
+
+    <div class="selector-col">
+      <div class="col-label">Zoom on Face</div>
+      <button class="sel-btn" onclick="openPicker('zoom')">
+        <div class="sel-visual" id="sv-zoom">
+          <img id="zoom-img" src="/zoom-images/zoom_1.webp" alt="" onerror="this.style.display='none'">
+          <div class="sel-fallback" id="zoom-fallback">Wide</div>
+        </div>
+        <span class="sel-name" id="sn-zoom">Loose</span>
+      </button>
+    </div>
+
+  </div>
+
+  <p class="hint">
+    <b>Top Crop</b>: no AI, crops from top &nbsp;|&nbsp;
+    <b>MediaPipe / InsightFace</b>: AI face detection &nbsp;|&nbsp;
+    <b>Zoom on Face</b>: Wide = head+torso, Bust = head+shoulders, Face = close-up (token only)
+  </p>
+
+  <div class="toggle-row">
+    <label class="toggle-label">
+      <input type="checkbox" id="toggleBgPortrait" checked />
+      <span class="toggle-track"></span>
+      Remove BG — Portrait
+    </label>
+    <label class="toggle-label">
+      <input type="checkbox" id="toggleBgToken" checked />
+      <span class="toggle-track"></span>
+      Remove BG — Token
+    </label>
+  </div>
+
+  <button class="btn-primary" id="btnProcess" onclick="runProcess()">Process</button>
+  <div id="status"></div>
+  <div id="results"></div>
+</div>
+
+<!-- Unified picker overlay -->
+<div id="pickerOverlay" class="overlay" onclick="closePickerOutside(event)">
+  <div class="picker-modal">
+    <div class="picker-header">
+      <h3 id="picker-title">Select</h3>
+      <button class="picker-close" onclick="closePicker()">×</button>
+    </div>
+    <div class="picker-grid" id="pickerGrid"></div>
+    <div class="picker-hint-bar" id="pickerHint"></div>
+  </div>
+</div>
+
+<!-- Image preview lightbox -->
+<div id="imgOverlay" onclick="closeImgOverlay(event)">
+  <div class="img-modal" onclick="event.stopPropagation()">
+    <button class="img-close" onclick="closeImgOverlay()">×</button>
+    <img id="imgPreview" src="" alt="Preview" />
+    <p id="imgName"></p>
+  </div>
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  const SEL = {
+    mode: { value: 'both',             display: 'P+T',   label: 'Portrait + Token' },
+    mask: { value: 'bottom-half.png',  display: '',      label: 'bottom-half'      },
+    size: { value: '512',              display: '512',   label: '512 px'           },
+    crop: { value: 'none',             display: 'OFF',   label: 'Off'              },
+    zoom: { value: '1',                display: 'Wide',  label: 'Wide'             },
+  };
+
+  const PICKER_CFG = {
+    mode: {
+      title: 'Select Mode',
+      dynamic: false,
+      options: [
+        { value: 'both',     label: 'Portrait + Token', display: 'P+T',     img: '/mode-images/both.png',    hint: '' },
+        { value: 'portrait', label: 'Portrait only',    display: 'Portrait', img: '/mode-images/portrait.png',hint: '' },
+        { value: 'token',    label: 'Token only',       display: 'Token',    img: '/mode-images/token.png',   hint: '' },
+        { value: 'nobg',     label: 'Remove BG',        display: 'No BG',    img: '/mode-images/nobg.png',    hint: '' },
+      ],
+    },
+    mask: {
+      title: 'Select Mask',
+      dynamic: true,
+      options: [],
+    },
+    size: {
+      title: 'Output Size',
+      dynamic: false,
+      options: [
+        { value: '256',  label: '256 px',  display: '256',  unit: 'px', hint: '' },
+        { value: '512',  label: '512 px',  display: '512',  unit: 'px', hint: '' },
+        { value: '1024', label: '1024 px', display: '1024', unit: 'px', hint: '' },
+        { value: '2048', label: '2048 px', display: '2048', unit: 'px', hint: '' },
+      ],
+    },
+    crop: {
+      title: 'Face Crop',
+      dynamic: false,
+      options: [
+        { value: 'none',        label: 'Off',         display: 'OFF', hint: 'No cropping — use the full image as-is' },
+        { value: 'top',         label: 'Top Crop',    display: 'TOP', hint: 'Simple crop from the top, no AI required' },
+        { value: 'mediapipe',   label: 'MediaPipe',   display: 'MP',  hint: 'Google face detection — fast, runs fully offline' },
+        { value: 'insightface', label: 'InsightFace', display: 'IF',  hint: 'Deep learning face detection — highly accurate' },
+      ],
+    },
+    zoom: {
+      title: 'Zoom on Face (token only)',
+      dynamic: false,
+      options: [
+        { value: '1', label: 'Wide', display: 'Wide', img: '/zoom-images/zoom_1.webp', hint: 'Wide — head + full torso visible' },
+        { value: '3', label: 'Bust', display: 'Bust', img: '/zoom-images/zoom_3.webp', hint: 'Bust — head + shoulders' },
+        { value: '5', label: 'Face', display: 'Face', img: '/zoom-images/zoom_5.webp', hint: 'Face — tight close-up, face fills the frame' },
+      ],
+    },
+  };
+
+  let currentPicker = null;
+
+  // ── Picker ─────────────────────────────────────────────────────────────────
+  async function openPicker(type) {
+    currentPicker = type;
+    const cfg = PICKER_CFG[type];
+    document.getElementById('picker-title').textContent = cfg.title;
+
+    let opts = cfg.options;
+    if (cfg.dynamic) {
+      const res  = await fetch('/masks');
+      const data = await res.json();
+      opts = data.masks.map(name => ({
+        value:   name,
+        label:   name.replace(/\.png$/i, ''),
+        display: '',
+        img:     '/masks/' + encodeURIComponent(name),
+        hint:    '',
+      }));
+    }
+
+    const curVal = SEL[type].value;
+    const grid   = document.getElementById('pickerGrid');
+
+    grid.innerHTML = opts.map(opt => {
+      const sel = opt.value === curVal ? ' selected' : '';
+      let visual;
+      if (opt.img) {
+        visual = `
+          <div class="popt-vis">
+            <img src="${opt.img}" alt="${escHtml(opt.label)}" onerror="this.style.display='none'">
+            <span class="popt-fallback">${escHtml(opt.display || opt.label)}</span>
+          </div>`;
+      } else {
+        visual = `
+          <div class="popt-vis popt-text">
+            <span class="popt-big">${escHtml(opt.display || opt.label)}</span>
+            ${opt.unit ? `<span class="popt-unit">${escHtml(opt.unit)}</span>` : ''}
+          </div>`;
+      }
+      return `<div class="popt${sel}"
+          data-value="${escAttr(opt.value)}"
+          data-display="${escAttr(opt.display || opt.label)}"
+          data-label="${escAttr(opt.label)}"
+          data-hint="${escAttr(opt.hint || '')}">
+        ${visual}
+        <span class="popt-label">${escHtml(opt.label)}</span>
+      </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.popt').forEach(el => {
+      el.addEventListener('click',       () => selectOption(el));
+      el.addEventListener('mouseenter',  () => { document.getElementById('pickerHint').textContent = el.dataset.hint || ''; });
+      el.addEventListener('mouseleave',  () => { document.getElementById('pickerHint').textContent = ''; });
+    });
+
+    document.getElementById('pickerHint').textContent = '';
+    document.getElementById('pickerOverlay').classList.add('open');
+  }
+
+  function selectOption(el) {
+    const type    = currentPicker;
+    const value   = el.dataset.value;
+    const display = el.dataset.display;
+    const label   = el.dataset.label;
+
+    SEL[type].value   = value;
+    SEL[type].display = display;
+    SEL[type].label   = label;
+    updateButton(type, value, display, label);
+    closePicker();
+  }
+
+  function updateButton(type, value, display, label) {
+    if (type === 'mode') {
+      const img = document.getElementById('mode-img');
+      img.style.display = '';
+      img.src = '/mode-images/' + value + '.png';
+      document.getElementById('mode-fallback').textContent = display;
+    } else if (type === 'mask') {
+      document.getElementById('maskThumb').src = '/masks/' + encodeURIComponent(value);
+    } else if (type === 'size') {
+      document.getElementById('sv-size').textContent = display;
+    } else if (type === 'crop') {
+      document.getElementById('sv-crop').textContent = display;
+    } else if (type === 'zoom') {
+      const img = document.getElementById('zoom-img');
+      img.style.display = '';
+      img.src = '/zoom-images/zoom_' + value + '.webp';
+      document.getElementById('zoom-fallback').textContent = display;
+    }
+    document.getElementById('sn-' + type).textContent = label;
+  }
+
+  function closePicker() {
+    document.getElementById('pickerOverlay').classList.remove('open');
+    currentPicker = null;
+  }
+  function closePickerOutside(e) {
+    if (e.target === document.getElementById('pickerOverlay')) closePicker();
+  }
+
+  // ── Browse ─────────────────────────────────────────────────────────────────
+  async function browse(type) {
+    const ep   = (type === 'folder' || type === 'output') ? '/open-folder' : '/open-file';
+    const res  = await fetch(ep);
+    const data = await res.json();
+    if (!data.path) return;
+    document.getElementById(type === 'output' ? 'outputPath' : 'inputPath').value = data.path;
+  }
+
+  // ── Process ────────────────────────────────────────────────────────────────
+  async function runProcess() {
+    const inputPath  = document.getElementById('inputPath').value.trim();
+    const outputPath = document.getElementById('outputPath').value.trim();
+    const btn        = document.getElementById('btnProcess');
+    const statusEl   = document.getElementById('status');
+    const resultsEl  = document.getElementById('results');
+
+    if (!inputPath) { statusEl.textContent = 'Please select an input file or folder.'; return; }
+
+    btn.disabled        = true;
+    statusEl.innerHTML  = '<em>Processing… this may take a moment per image.</em>';
+    resultsEl.innerHTML = '';
+
+    try {
+      const res  = await fetch('/process', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          input:               inputPath,
+          output:              outputPath,
+          mode:                SEL.mode.value,
+          mask:                SEL.mask.value,
+          size:                parseInt(SEL.size.value),
+          crop_backend:        SEL.crop.value,
+          crop_zoom:           parseInt(SEL.zoom.value),
+          remove_bg_portrait:  document.getElementById('toggleBgPortrait').checked,
+          remove_bg_token:     document.getElementById('toggleBgToken').checked,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) { statusEl.textContent = `Error: ${data.error}`; return; }
+      statusEl.textContent = `Done — ${data.results.length} image(s) processed.`;
+      renderResults(data.results, data.errors || []);
+    } catch (err) {
+      statusEl.textContent = `Request failed: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Results ────────────────────────────────────────────────────────────────
+  function renderResults(results, errors) {
+    const el = document.getElementById('results');
+    if (!results.length && !errors.length) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:.85rem">No images found.</p>';
+      return;
+    }
+
+    let html = '<h2>Results</h2>';
+    for (const r of results) {
+      const files = ['portrait', 'token', 'nobg']
+        .filter(k => r[k])
+        .map(k => {
+          const name = r[k].split(/[\\/]/).pop();
+          return `<span class="result-badge" data-path="${escAttr(r[k])}" data-name="${escAttr(name)}">${escHtml(name)}</span>`;
+        }).join('');
+      html += `
+        <div class="result-item">
+          <div class="result-icon">✓</div>
+          <div>
+            <div class="result-name">${escHtml(r.name)}</div>
+            <div class="result-files">${files}</div>
+          </div>
+        </div>`;
+    }
+    for (const err of errors) {
+      html += `<div class="error-item">⚠ ${escHtml(err)}</div>`;
+    }
+
+    el.innerHTML = html;
+    el.querySelectorAll('.result-badge').forEach(badge => {
+      badge.addEventListener('click', () => openImgPreview(badge.dataset.path, badge.dataset.name));
+    });
+  }
+
+  // ── Image preview ──────────────────────────────────────────────────────────
+  function openImgPreview(path, name) {
+    document.getElementById('imgPreview').src = '/serve?path=' + encodeURIComponent(path);
+    document.getElementById('imgName').textContent = name;
+    document.getElementById('imgOverlay').classList.add('open');
+  }
+  function closeImgOverlay(e) {
+    if (!e || e.target === document.getElementById('imgOverlay')) {
+      document.getElementById('imgOverlay').classList.remove('open');
+      document.getElementById('imgPreview').src = '';
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escAttr(s) {
+    return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+</script>
+</body>
+</html>
