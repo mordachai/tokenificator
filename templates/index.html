@@ -35,15 +35,86 @@
       border-radius: var(--radius);
       padding: 2rem;
       width: 100%;
-      max-width: 900px;
+      max-width: 1480px;
     }
 
     h1 { font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
     h1 span { color: var(--accent); }
-    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+    /* ── Two-column layout ── */
+    .app-layout {
+      display: flex;
+      gap: 1.75rem;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+    .controls-panel { flex: 1 1 0; min-width: 0; }
+
+    /* ── Preview panel ── */
+    .preview-panel {
+      flex: 0 0 auto;
+      width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .preview-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .canvas-wrap {
+      position: relative;
+      width: 420px;
+      height: 420px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: crosshair;
+      background: #111;
+    }
+    .canvas-wrap.has-image { cursor: grab; }
+    .canvas-wrap.has-image:active { cursor: grabbing; }
+    #previewCanvas {
+      display: block;
+      width: 420px;
+      height: 420px;
+    }
+    .canvas-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      pointer-events: none;
+      line-height: 2.2;
+    }
+    .canvas-placeholder.hidden { display: none; }
+    .canvas-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 0.35rem;
+      opacity: 0.65;
+    }
+    .preview-btns { display: flex; gap: 0.5rem; }
+    .preview-btns button { flex: 1; font-size: 0.8rem; padding: 0.5rem 0.5rem; }
+    .preview-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      min-height: 1rem;
+    }
+    .preview-meta.manual { color: #7ec8a4; }
 
     /* ── Fields ── */
-    .field { margin-bottom: 1.25rem; }
+    .field { margin-bottom: 1.1rem; }
     label {
       display: block;
       font-size: 0.8rem;
@@ -76,6 +147,7 @@
       transition: background 0.15s;
     }
     button:hover { background: #1a4a80; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; background: var(--border); }
 
     .btn-primary {
       background: var(--accent);
@@ -83,7 +155,7 @@
       padding: 0.7rem;
       font-size: 1rem;
       font-weight: 600;
-      margin-top: 0.75rem;
+      margin-top: 0.5rem;
       letter-spacing: 0.04em;
     }
     .btn-primary:hover { background: #c73350; }
@@ -91,12 +163,42 @@
 
     .hint { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
 
-    /* ── 5-column selector row ── */
-    .selector-row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.75rem;
+    /* ── Selector layout ── */
+    .selector-layout {
+      display: flex;
+      gap: 1rem;
       margin-bottom: 0.75rem;
+      align-items: flex-start;
+    }
+    .main-selectors {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    .auto-section {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem 0.6rem;
+      margin: 0;
+      flex: 1;
+    }
+    .auto-section legend {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0.4rem;
+    }
+    .auto-selectors {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .auto-section:disabled, .auto-section[disabled] {
+      opacity: 0.38;
+      pointer-events: none;
     }
     .selector-col {
       display: flex;
@@ -114,7 +216,6 @@
     /* ── Selector button ── */
     .sel-btn {
       width: 100%;
-      max-width: 150px;
       aspect-ratio: 1;
       display: flex;
       flex-direction: column;
@@ -156,30 +257,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--muted);
       text-align: center;
       padding: 0.25rem;
       z-index: 0;
     }
-    /* text-only visual (size, crop, zoom) */
-    .sel-text {
-      flex-direction: column;
-      line-height: 1.1;
-    }
-    .sel-big {
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1;
-    }
-    .sel-unit {
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 0.1rem;
-    }
+    .sel-text { flex-direction: column; line-height: 1.1; }
+    .sel-big  { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .sel-unit { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
     .sel-name {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -191,7 +279,7 @@
       flex-shrink: 0;
     }
 
-    /* ── Picker overlay (unified) ── */
+    /* ── Picker overlay ── */
     .overlay {
       display: none;
       position: fixed;
@@ -202,7 +290,6 @@
       justify-content: center;
     }
     .overlay.open { display: flex; }
-
     .picker-modal {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -232,13 +319,7 @@
       cursor: pointer;
     }
     .picker-close:hover { color: var(--text); background: none; }
-
-    .picker-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
+    .picker-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
     .popt {
       display: flex;
       flex-direction: column;
@@ -250,9 +331,8 @@
       border: 2px solid transparent;
       transition: border-color 0.12s, background 0.12s;
     }
-    .popt:hover  { border-color: var(--border); }
+    .popt:hover   { border-color: var(--border); }
     .popt.selected { border-color: var(--accent); background: #1a0710; }
-
     .popt-vis {
       width: 100px;
       height: 100px;
@@ -284,20 +364,9 @@
       padding: 0.25rem;
       z-index: 0;
     }
-    .popt-text {
-      flex-direction: column;
-      line-height: 1.1;
-    }
-    .popt-text .popt-big {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--text);
-    }
-    .popt-text .popt-unit {
-      font-size: 0.65rem;
-      color: var(--muted);
-    }
-
+    .popt-text { flex-direction: column; line-height: 1.1; }
+    .popt-text .popt-big  { font-size: 2rem; font-weight: 800; color: var(--text); }
+    .popt-text .popt-unit { font-size: 0.65rem; color: var(--muted); }
     .popt-label {
       font-size: 0.68rem;
       color: var(--muted);
@@ -307,7 +376,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
     .picker-hint-bar {
       min-height: 1.4rem;
       margin-top: 0.75rem;
@@ -318,54 +386,21 @@
       font-style: italic;
     }
 
-    /* ── Image preview lightbox ── */
-    #imgOverlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.88);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
-    #imgOverlay.open { display: flex; }
-    .img-modal {
-      position: relative;
+    /* ── Split-Y row ── */
+    .split-row { display: none; margin-bottom: 0.9rem; }
+    .split-row.visible { display: block; }
+    .split-label-row {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      max-width: 90vw;
-      max-height: 90vh;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
     }
-    .img-close {
-      position: absolute;
-      top: -2.2rem;
-      right: 0;
-      background: none;
-      border: none;
-      color: #ccc;
-      font-size: 1.6rem;
-      line-height: 1;
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
       cursor: pointer;
-      padding: 0.1rem 0.4rem;
     }
-    .img-close:hover { color: #fff; background: none; }
-    #imgPreview {
-      max-width: 100%;
-      max-height: 80vh;
-      border-radius: var(--radius);
-      /* checkerboard to show transparency */
-      background-color: #2d2d2d;
-      background-image:
-        linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
-        linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
-        linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
-      background-size: 16px 16px;
-      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-    }
-    #imgName { font-size: 0.78rem; color: var(--muted); font-family: monospace; }
 
     /* ── Toggle switches ── */
     .toggle-row {
@@ -408,34 +443,256 @@
     .toggle-label input:checked ~ .toggle-track { background: var(--accent); }
     .toggle-label input:checked ~ .toggle-track::after { left: 19px; background: #fff; }
 
-    /* ── Results ── */
-    #results { margin-top: 2rem; }
-    #results h2 { font-size: 1rem; color: var(--muted); margin-bottom: 1rem; }
-    .result-item {
+    /* ── Image lightbox ── */
+    #imgOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #imgOverlay.open { display: flex; }
+    .img-modal {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+    .img-close {
+      position: absolute;
+      top: -2.2rem;
+      right: 0;
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.1rem 0.4rem;
+    }
+    .img-close:hover { color: #fff; background: none; }
+    #imgPreview {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: var(--radius);
+      background-color: #2d2d2d;
+      background-image:
+        linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+        linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    #imgName { font-size: 0.78rem; color: var(--muted); font-family: monospace; }
+
+    /* ── Results panel ── */
+    .results-panel {
+      flex: 0 0 240px;
+      border-left: 1px solid var(--border);
+      padding-left: 1.5rem;
+      min-width: 0;
+      max-height: 680px;
+      overflow-y: auto;
+    }
+    .results-empty {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 2rem 0.5rem;
+      line-height: 2;
+      opacity: 0.55;
+    }
+    .results-header {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      padding: 0.75rem 0;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .results-header h2 { font-size: 1rem; color: var(--muted); }
+    .btn-dl-all {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.55rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-dl-all:hover { border-color: var(--accent); color: var(--accent); background: none; }
+    .result-card {
+      padding: 0.6rem 0;
       border-bottom: 1px solid var(--border);
     }
-    .result-item:last-child { border-bottom: none; }
-    .result-icon { font-size: 1.4rem; flex-shrink: 0; }
-    .result-name { font-weight: 600; font-size: 0.95rem; }
-    .result-files { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
-    .result-badge {
-      display: inline-block;
-      background: var(--bg);
-      border-radius: 3px;
-      padding: 0.1rem 0.5rem;
-      margin-right: 0.4rem;
-      border: 1px solid var(--border);
-      font-family: monospace;
-      cursor: pointer;
-      transition: border-color 0.12s, color 0.12s;
+    .result-card:last-child { border-bottom: none; }
+    .result-card-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .result-badge:hover { border-color: var(--accent); color: var(--accent); }
+    .result-size {
+      font-size: 0.68rem;
+      color: var(--border);
+      margin-bottom: 0.4rem;
+      font-family: monospace;
+    }
+    .result-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.35rem;
+    }
+    .result-row:last-child { margin-bottom: 0; }
+    .result-thumb {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 3px;
+      background-color: #2a2a2a;
+      background-image:
+        linear-gradient(45deg,#333 25%,transparent 25%),
+        linear-gradient(-45deg,#333 25%,transparent 25%),
+        linear-gradient(45deg,transparent 75%,#333 75%),
+        linear-gradient(-45deg,transparent 75%,#333 75%);
+      background-size: 8px 8px;
+      background-position: 0 0,0 4px,4px -4px,-4px 0;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+      transition: border-color 0.12s;
+    }
+    .result-thumb:hover { border-color: var(--accent); }
+    .result-row-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-dl {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.45rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text);
+      cursor: pointer;
+      flex-shrink: 0;
+      line-height: 1.2;
+    }
+    .btn-dl:hover { border-color: var(--accent); color: var(--accent); background: none; }
     .error-item { color: var(--accent); padding: 0.5rem 0; font-size: 0.85rem; }
-    #status { text-align: center; font-size: 0.9rem; color: var(--muted); padding: 1rem 0 0; }
+    #status { text-align: center; font-size: 0.9rem; color: var(--muted); padding: 0.75rem 0 0; }
+
+    /* ── Responsive ─────────────────────────────────────────────────────────── */
+
+    /* Tablet landscape / small desktop: keep 3 cols but tighten results */
+    @media (max-width: 1200px) {
+      .results-panel { flex: 0 0 210px; }
+    }
+
+    /* Tablet portrait: drop results below, two-column top row */
+    @media (max-width: 980px) {
+      .card { padding: 1.5rem; }
+      body  { padding: 1rem 0.5rem; }
+
+      .app-layout {
+        flex-wrap: wrap;
+        gap: 1.25rem;
+      }
+
+      /* preview + controls sit side by side, results drops to full-width below */
+      .preview-panel  { order: 1; flex: 0 0 auto; }
+      .controls-panel { order: 2; flex: 1 1 300px; min-width: 0; }
+      .results-panel  {
+        order: 3;
+        flex: 1 1 100%;          /* full width below */
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 1rem;
+        max-height: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 1.5rem;           /* cards lay out horizontally */
+        align-items: flex-start;
+      }
+      .results-panel .results-header { flex: 1 1 100%; }
+      .result-card { flex: 0 0 auto; }
+    }
+
+    /* Mobile: single column, preview between controls and results */
+    @media (max-width: 640px) {
+      .card { padding: 1rem; border-radius: 0; border-left: none; border-right: none; }
+      body  { padding: 0; }
+
+      .app-layout {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .controls-panel { order: 1; }
+      .preview-panel  { order: 2; width: 100%; }
+      .results-panel  {
+        order: 3;
+        flex: none;
+        width: 100%;
+        display: block;          /* back to normal stacking for mobile */
+      }
+
+      /* Canvas fills screen width */
+      .canvas-wrap { width: 100%; height: auto; aspect-ratio: 1; }
+      #previewCanvas { width: 100%; height: auto; }
+
+      /* Preview buttons: wrap on very small screens */
+      .preview-btns { flex-wrap: wrap; }
+      .preview-btns button { min-height: 44px; flex: 1 1 calc(50% - 0.25rem); }
+
+      /* Selector grid: 2 across on mobile */
+      .selector-layout { flex-direction: column; gap: 0.75rem; }
+      .main-selectors  { grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+      .auto-selectors  { grid-template-columns: repeat(2, 1fr); }
+
+      /* Larger touch targets for inputs and buttons */
+      input[type="text"]  { padding: 0.7rem 0.75rem; font-size: 1rem; }
+      button              { min-height: 44px; }
+      .btn-primary        { font-size: 1.05rem; padding: 0.85rem; }
+
+      /* Picker modal: full-width, scrollable on mobile */
+      .picker-modal {
+        width: 100vw;
+        max-width: 100vw;
+        max-height: 85vh;
+        border-radius: var(--radius) var(--radius) 0 0;
+        overflow-y: auto;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+      }
+      .overlay { align-items: flex-end; }
+      .picker-grid { justify-content: center; }
+      .popt-vis { width: 80px; height: 80px; }
+      .popt-label { max-width: 80px; }
+
+      /* Results: slightly wider cards */
+      .result-thumb { width: 54px; height: 54px; }
+    }
+
+    /* Small phone: tighten further */
+    @media (max-width: 380px) {
+      .main-selectors { grid-template-columns: repeat(2, 1fr); }
+      .sel-big { font-size: 1.5rem; }
+    }
   </style>
 </head>
 <body>
@@ -443,107 +700,173 @@
   <h1>Token<span>ificator</span></h1>
   <p class="subtitle">Portrait &amp; token generator for Foundry VTT</p>
 
-  <div class="field">
-    <label>Input — file or folder</label>
-    <div class="input-row">
-      <input type="text" id="inputPath" placeholder="C:\portraits\Goblin, Archer.png" />
-      <button onclick="browse('file')">File</button>
-      <button onclick="browse('folder')">Folder</button>
-    </div>
-    <p class="hint">Single image or a folder of images — PNG, JPG, WebP and more</p>
-  </div>
+  <div class="app-layout">
 
-  <div class="field">
-    <label>Output folder <span style="color:#555">(optional)</span></label>
-    <div class="input-row">
-      <input type="text" id="outputPath" placeholder="Leave empty to save next to source" />
-      <button onclick="browse('output')">Browse</button>
-    </div>
-  </div>
+    <!-- ── Left: interactive preview ── -->
+    <div class="preview-panel">
+      <div class="preview-label">Preview</div>
 
-  <!-- 5 selector columns -->
-  <div class="selector-row">
-
-    <div class="selector-col">
-      <div class="col-label">Mode</div>
-      <button class="sel-btn" onclick="openPicker('mode')">
-        <div class="sel-visual" id="sv-mode">
-          <img id="mode-img" src="/mode-images/both.png" alt="" onerror="this.style.display='none'">
-          <div class="sel-fallback" id="mode-fallback">P+T</div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="previewCanvas" width="420" height="420"></canvas>
+        <div class="canvas-placeholder" id="canvasPlaceholder">
+          <span>Select an image file</span>
+          <span style="display:block">to see a preview here</span>
         </div>
-        <span class="sel-name" id="sn-mode">Portrait + Token</span>
-      </button>
+      </div>
+
+      <div class="canvas-hint">Drag to pan &nbsp;·&nbsp; Scroll to zoom</div>
+
+      <div class="preview-btns">
+        <button id="btnPrepare" onclick="runPrepare()">Remove BG &amp; Preview</button>
+        <button id="btnMask" onclick="applyMaskToImage()" disabled>Apply Mask</button>
+        <button id="btnReset" onclick="resetView()" disabled>Reset</button>
+      </div>
+
+      <div class="preview-meta" id="previewMeta">No image loaded</div>
     </div>
 
-    <div class="selector-col">
-      <div class="col-label">Mask</div>
-      <button class="sel-btn" onclick="openPicker('mask')">
-        <div class="sel-visual">
-          <img id="maskThumb" src="/masks/bottom-half.png" alt="mask" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;">
+    <!-- ── Right: controls ── -->
+    <div class="controls-panel">
+
+      <div class="field">
+        <label>Input — file or folder</label>
+        <div class="input-row">
+          <input type="text" id="inputPath" placeholder="C:\portraits\Wizard.png"
+                 oninput="onInputChange()" />
+          <button onclick="browse('file')">File</button>
+          <button onclick="browse('folder')">Folder</button>
         </div>
-        <span class="sel-name" id="sn-mask">bottom-half</span>
-      </button>
-    </div>
+        <p class="hint">Single image or a folder — PNG, JPG, WebP, and more</p>
+      </div>
 
-    <div class="selector-col">
-      <div class="col-label">Size</div>
-      <button class="sel-btn" onclick="openPicker('size')">
-        <div class="sel-visual sel-text">
-          <span class="sel-big" id="sv-size">512</span>
-          <span class="sel-unit">px</span>
+      <div class="field">
+        <label>Output folder <span style="color:#555">(optional)</span></label>
+        <div class="input-row">
+          <input type="text" id="outputPath" placeholder="Leave empty to save next to source" />
+          <button onclick="browse('output')">Browse</button>
         </div>
-        <span class="sel-name" id="sn-size">512 px</span>
-      </button>
-    </div>
+      </div>
 
-    <div class="selector-col">
-      <div class="col-label">Face Crop</div>
-      <button class="sel-btn" onclick="openPicker('crop')">
-        <div class="sel-visual sel-text">
-          <span class="sel-big" id="sv-crop">OFF</span>
+      <!-- Selectors: 2×2 main + Automatic section -->
+      <div class="selector-layout">
+
+        <div class="main-selectors">
+
+          <div class="selector-col">
+            <div class="col-label">Mode</div>
+            <button class="sel-btn" onclick="openPicker('mode')">
+              <div class="sel-visual" id="sv-mode">
+                <img id="mode-img" src="/mode-images/both.png" alt="" onerror="this.style.display='none'">
+                <div class="sel-fallback" id="mode-fallback">P+T</div>
+              </div>
+              <span class="sel-name" id="sn-mode">Portrait + Token</span>
+            </button>
+          </div>
+
+          <div class="selector-col">
+            <div class="col-label">Mask</div>
+            <button class="sel-btn" onclick="openPicker('mask')">
+              <div class="sel-visual">
+                <img id="maskThumb" src="/masks/bottom-half.png" alt="mask"
+                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;">
+              </div>
+              <span class="sel-name" id="sn-mask">bottom-half</span>
+            </button>
+          </div>
+
+          <div class="selector-col">
+            <div class="col-label">Frame</div>
+            <button class="sel-btn" onclick="openPicker('frame')">
+              <div class="sel-visual" id="sv-frame">
+                <img id="frame-img" src="" alt="" style="display:none" onerror="this.style.display='none'">
+                <div class="sel-fallback" id="frame-fallback">None</div>
+              </div>
+              <span class="sel-name" id="sn-frame">None</span>
+            </button>
+          </div>
+
+          <div class="selector-col">
+            <div class="col-label">Size</div>
+            <button class="sel-btn" onclick="openPicker('size')">
+              <div class="sel-visual sel-text">
+                <span class="sel-big" id="sv-size">512</span>
+                <span class="sel-unit">px</span>
+              </div>
+              <span class="sel-name" id="sn-size">512 px</span>
+            </button>
+          </div>
+
+        </div><!-- /main-selectors -->
+
+        <fieldset class="auto-section" id="autoSection">
+          <legend>Automatic</legend>
+          <div class="auto-selectors">
+
+            <div class="selector-col">
+              <div class="col-label">Face Crop</div>
+              <button class="sel-btn" onclick="openPicker('crop')">
+                <div class="sel-visual sel-text">
+                  <span class="sel-big" id="sv-crop">OFF</span>
+                </div>
+                <span class="sel-name" id="sn-crop">Off</span>
+              </button>
+            </div>
+
+            <div class="selector-col">
+              <div class="col-label">Zoom</div>
+              <button class="sel-btn" onclick="openPicker('zoom')">
+                <div class="sel-visual" id="sv-zoom">
+                  <img id="zoom-img" src="/zoom-images/zoom_1.webp" alt="" onerror="this.style.display='none'">
+                  <div class="sel-fallback" id="zoom-fallback">Wide</div>
+                </div>
+                <span class="sel-name" id="sn-zoom">Loose</span>
+              </button>
+            </div>
+
+          </div><!-- /auto-selectors -->
+          <p class="hint" style="margin:0"><b>Face Crop</b>: Top = no AI &nbsp;|&nbsp; MediaPipe / InsightFace = AI detection<br>
+          <b>Zoom</b>: token crop only — ignored in manual mode</p>
+        </fieldset>
+
+      </div><!-- /selector-layout -->
+
+      <div class="split-row" id="splitRow">
+        <div class="split-label-row">
+          <span>Overflow line</span>
+          <span id="splitLabel">50%</span>
         </div>
-        <span class="sel-name" id="sn-crop">Off</span>
-      </button>
+        <input type="range" id="splitY" min="10" max="90" value="50" step="5"
+               oninput="document.getElementById('splitLabel').textContent=this.value+'%'; onOverlaySettingChange()">
+        <p class="hint" style="margin-top:0.3rem">Character pixels above this line pop over the frame.</p>
+      </div>
+
+      <div class="toggle-row">
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleBgPortrait" checked />
+          <span class="toggle-track"></span>
+          Remove BG — Portrait
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleBgToken" checked />
+          <span class="toggle-track"></span>
+          Remove BG — Token
+        </label>
+      </div>
+
+      <button class="btn-primary" id="btnProcess" onclick="runProcess()">Generate</button>
+      <div id="status"></div>
+
+    </div><!-- /controls-panel -->
+
+    <!-- ── Right: results ── -->
+    <div class="results-panel" id="results">
+      <div class="results-empty">Results will<br>appear here</div>
     </div>
 
-    <div class="selector-col">
-      <div class="col-label">Zoom on Face</div>
-      <button class="sel-btn" onclick="openPicker('zoom')">
-        <div class="sel-visual" id="sv-zoom">
-          <img id="zoom-img" src="/zoom-images/zoom_1.webp" alt="" onerror="this.style.display='none'">
-          <div class="sel-fallback" id="zoom-fallback">Wide</div>
-        </div>
-        <span class="sel-name" id="sn-zoom">Loose</span>
-      </button>
-    </div>
-
-  </div>
-
-  <p class="hint">
-    <b>Top Crop</b>: no AI, crops from top &nbsp;|&nbsp;
-    <b>MediaPipe / InsightFace</b>: AI face detection &nbsp;|&nbsp;
-    <b>Zoom on Face</b>: Wide = head+torso, Bust = head+shoulders, Face = close-up (token only)
-  </p>
-
-  <div class="toggle-row">
-    <label class="toggle-label">
-      <input type="checkbox" id="toggleBgPortrait" checked />
-      <span class="toggle-track"></span>
-      Remove BG — Portrait
-    </label>
-    <label class="toggle-label">
-      <input type="checkbox" id="toggleBgToken" checked />
-      <span class="toggle-track"></span>
-      Remove BG — Token
-    </label>
-  </div>
-
-  <button class="btn-primary" id="btnProcess" onclick="runProcess()">Process</button>
-  <div id="status"></div>
-  <div id="results"></div>
+  </div><!-- /app-layout -->
 </div>
 
-<!-- Unified picker overlay -->
+<!-- Picker overlay -->
 <div id="pickerOverlay" class="overlay" onclick="closePickerOutside(event)">
   <div class="picker-modal">
     <div class="picker-header">
@@ -555,39 +878,78 @@
   </div>
 </div>
 
-<!-- Image preview lightbox -->
+<!-- Image lightbox -->
 <div id="imgOverlay" onclick="closeImgOverlay(event)">
   <div class="img-modal" onclick="event.stopPropagation()">
     <button class="img-close" onclick="closeImgOverlay()">×</button>
     <img id="imgPreview" src="" alt="Preview" />
-    <p id="imgName"></p>
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:1rem;margin-top:0.25rem">
+      <p id="imgName"></p>
+      <button class="btn-dl" onclick="downloadImgPreview()" style="font-size:0.85rem;padding:0.3rem 0.7rem">Download</button>
+    </div>
   </div>
 </div>
 
 <script>
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── Constants ──────────────────────────────────────────────────────────────
+  const CANVAS_PX = 420;
+
+  // ── Selector state ─────────────────────────────────────────────────────────
   const SEL = {
-    mode: { value: 'both',             display: 'P+T',   label: 'Portrait + Token' },
-    mask: { value: 'bottom-half.png',  display: '',      label: 'bottom-half'      },
-    size: { value: '512',              display: '512',   label: '512 px'           },
-    crop: { value: 'none',             display: 'OFF',   label: 'Off'              },
-    zoom: { value: '1',                display: 'Wide',  label: 'Wide'             },
+    mode:  { value: 'both',            display: 'P+T',   label: 'Portrait + Token' },
+    mask:  { value: 'bottom-half.png', display: '',      label: 'bottom-half'      },
+    size:  { value: '512',             display: '512',   label: '512 px'           },
+    crop:  { value: 'none',            display: 'OFF',   label: 'Off'              },
+    zoom:  { value: '1',               display: 'Wide',  label: 'Wide'             },
+    frame: { value: 'none',            display: 'None',  label: 'None'             },
   };
 
+  // ── Preview state ──────────────────────────────────────────────────────────
+  const preview = {
+    nobgImg:      null,   // HTMLImageElement loaded from /tmp/...
+    naturalW:     0,
+    naturalH:     0,
+    preparedPath: null,   // tmp file path (on disk, for backend)
+    preparedInput: null,  // original input path this was prepared from
+    panX:         0,      // px offset from canvas centre (canvas-space)
+    panY:         0,
+    userScale:    1.0,
+    isDragging:   false,
+    dragStart:    null,
+    maskCanvas:   null,   // offscreen canvas with luminance→alpha mask
+    frameImg:     null,   // HTMLImageElement for frame overlay
+    originalImg:  null,   // snapshot before any applyMaskToImage bake
+    originalW:    0,
+    originalH:    0,
+  };
+
+  // ── Picker config ──────────────────────────────────────────────────────────
   const PICKER_CFG = {
     mode: {
       title: 'Select Mode',
       dynamic: false,
       options: [
-        { value: 'both',     label: 'Portrait + Token', display: 'P+T',     img: '/mode-images/both.png',    hint: '' },
-        { value: 'portrait', label: 'Portrait only',    display: 'Portrait', img: '/mode-images/portrait.png',hint: '' },
-        { value: 'token',    label: 'Token only',       display: 'Token',    img: '/mode-images/token.png',   hint: '' },
-        { value: 'nobg',     label: 'Remove BG',        display: 'No BG',    img: '/mode-images/nobg.png',    hint: '' },
+        { value: 'both',     label: 'Portrait + Token', display: 'P+T',      img: '/mode-images/both.png',     hint: '' },
+        { value: 'portrait', label: 'Portrait only',    display: 'Portrait',  img: '/mode-images/portrait.png', hint: '' },
+        { value: 'token',    label: 'Token only',       display: 'Token',     img: '/mode-images/token.png',    hint: '' },
+        { value: 'nobg',     label: 'Remove BG',        display: 'No BG',     img: '/mode-images/nobg.png',     hint: '' },
       ],
     },
     mask: {
       title: 'Select Mask',
       dynamic: true,
+      fetchUrl: '/masks',
+      listKey:  'masks',
+      pathPrefix: '/masks/',
+      options: [],
+    },
+    frame: {
+      title: 'Select Frame',
+      dynamic: true,
+      fetchUrl: '/frames',
+      listKey:  'frames',
+      pathPrefix: '/frames/',
+      noneOption: { value: 'none', label: 'None', display: 'None', hint: 'No decorative frame' },
       options: [],
     },
     size: {
@@ -604,24 +966,502 @@
       title: 'Face Crop',
       dynamic: false,
       options: [
-        { value: 'none',        label: 'Off',         display: 'OFF', hint: 'No cropping — use the full image as-is' },
-        { value: 'top',         label: 'Top Crop',    display: 'TOP', hint: 'Simple crop from the top, no AI required' },
-        { value: 'mediapipe',   label: 'MediaPipe',   display: 'MP',  hint: 'Google face detection — fast, runs fully offline' },
-        { value: 'insightface', label: 'InsightFace', display: 'IF',  hint: 'Deep learning face detection — highly accurate' },
+        { value: 'none',        label: 'Off',         display: 'OFF', hint: 'No cropping — use full image as-is' },
+        { value: 'top',         label: 'Top Crop',    display: 'TOP', hint: 'Simple crop from top, no AI required' },
+        { value: 'mediapipe',   label: 'MediaPipe',   display: 'MP',  hint: 'Google face detection — fast, offline' },
+        { value: 'insightface', label: 'InsightFace', display: 'IF',  hint: 'Deep learning face detection — accurate' },
       ],
     },
     zoom: {
       title: 'Zoom on Face (token only)',
       dynamic: false,
       options: [
-        { value: '1', label: 'Wide', display: 'Wide', img: '/zoom-images/zoom_1.webp', hint: 'Wide — head + full torso visible' },
+        { value: '1', label: 'Wide', display: 'Wide', img: '/zoom-images/zoom_1.webp', hint: 'Wide — head + torso' },
         { value: '3', label: 'Bust', display: 'Bust', img: '/zoom-images/zoom_3.webp', hint: 'Bust — head + shoulders' },
-        { value: '5', label: 'Face', display: 'Face', img: '/zoom-images/zoom_5.webp', hint: 'Face — tight close-up, face fills the frame' },
+        { value: '5', label: 'Face', display: 'Face', img: '/zoom-images/zoom_5.webp', hint: 'Face — tight close-up' },
       ],
     },
   };
 
   let currentPicker = null;
+
+  // ── Canvas rendering ───────────────────────────────────────────────────────
+  function drawCheckerboard(ctx) {
+    const s = 14;
+    for (let r = 0; r < CANVAS_PX / s; r++) {
+      for (let c = 0; c < CANVAS_PX / s; c++) {
+        ctx.fillStyle = (r + c) % 2 === 0 ? '#222' : '#2e2e2e';
+        ctx.fillRect(c * s, r * s, s, s);
+      }
+    }
+  }
+
+  function _makeImageCanvas(x, y, w, h) {
+    // Draw image at given position onto an offscreen canvas, then apply the
+    // mask as a fixed window (mask stays at origin — image moves behind it).
+    const oc  = document.createElement('canvas');
+    oc.width  = oc.height = CANVAS_PX;
+    const ctx = oc.getContext('2d');
+    ctx.drawImage(preview.nobgImg, x, y, w, h);
+    if (preview.maskCanvas) {
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(preview.maskCanvas, 0, 0);
+    }
+    return oc;
+  }
+
+  function renderCanvas() {
+    const canvas = document.getElementById('previewCanvas');
+    const ctx    = canvas.getContext('2d');
+    ctx.clearRect(0, 0, CANVAS_PX, CANVAS_PX);
+    drawCheckerboard(ctx);
+
+    if (!preview.nobgImg) return;
+
+    const baseScale = CANVAS_PX / Math.min(preview.naturalW, preview.naturalH);
+    const scale = baseScale * preview.userScale;
+    const w = preview.naturalW * scale;
+    const h = preview.naturalH * scale;
+    const x = CANVAS_PX / 2 + preview.panX - w / 2;
+    const y = CANVAS_PX / 2 + preview.panY - h / 2;
+
+    // Layer 1: image windowed by fixed mask
+    ctx.drawImage(_makeImageCanvas(x, y, w, h), 0, 0);
+
+    // Layer 2 + 3: frame then overflow
+    if (preview.frameImg) {
+      ctx.drawImage(preview.frameImg, 0, 0, CANVAS_PX, CANVAS_PX);
+
+      // Overflow: image (windowed by mask) clipped to the top portion
+      const splitPx = CANVAS_PX * parseInt(document.getElementById('splitY').value) / 100;
+      const ovOC  = _makeImageCanvas(x, y, w, h);
+      const ovCtx = ovOC.getContext('2d');
+      const topOC  = document.createElement('canvas');
+      topOC.width  = topOC.height = CANVAS_PX;
+      const topCtx = topOC.getContext('2d');
+      topCtx.fillStyle = '#fff';
+      topCtx.fillRect(0, 0, CANVAS_PX, splitPx);
+      ovCtx.globalCompositeOperation = 'destination-in';
+      ovCtx.drawImage(topOC, 0, 0);
+      ctx.drawImage(ovOC, 0, 0);
+    }
+  }
+
+  // Convert a grayscale mask PNG (luminance) into a canvas with luminance→alpha
+  function loadMaskCanvas(maskName) {
+    if (!maskName || maskName === 'none') {
+      preview.maskCanvas = null;
+      renderCanvas();
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const oc  = document.createElement('canvas');
+      oc.width  = oc.height = CANVAS_PX;
+      const ctx = oc.getContext('2d');
+      ctx.drawImage(img, 0, 0, CANVAS_PX, CANVAS_PX);
+      const data = ctx.getImageData(0, 0, CANVAS_PX, CANVAS_PX);
+      for (let i = 0; i < data.data.length; i += 4) {
+        data.data[i + 3] = data.data[i]; // R channel → alpha
+        data.data[i] = data.data[i + 1] = data.data[i + 2] = 255;
+      }
+      ctx.putImageData(data, 0, 0);
+      preview.maskCanvas = oc;
+      renderCanvas();
+    };
+    img.onerror = () => { preview.maskCanvas = null; renderCanvas(); };
+    img.src = '/masks/' + encodeURIComponent(maskName);
+  }
+
+  function loadFrameImg(frameName) {
+    if (!frameName || frameName === 'none') {
+      preview.frameImg = null;
+      renderCanvas();
+      return;
+    }
+    const img = new Image();
+    img.onload  = () => { preview.frameImg = img; renderCanvas(); };
+    img.onerror = () => { preview.frameImg = null; renderCanvas(); };
+    img.src = '/frames/' + encodeURIComponent(frameName);
+  }
+
+  // Called when mask / frame / splitY changes
+  function onOverlaySettingChange() {
+    if (!preview.nobgImg) return;
+    renderCanvas();
+  }
+
+  // ── Canvas interaction ─────────────────────────────────────────────────────
+  function initCanvas() {
+    const wrap = document.getElementById('canvasWrap');
+
+    wrap.addEventListener('mousedown', e => {
+      if (!preview.nobgImg) return;
+      preview.isDragging = true;
+      preview.dragStart  = { x: e.clientX, y: e.clientY };
+      preview.dragStartPan = { x: preview.panX, y: preview.panY };
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!preview.isDragging) return;
+      preview.panX = preview.dragStartPan.x + (e.clientX - preview.dragStart.x);
+      preview.panY = preview.dragStartPan.y + (e.clientY - preview.dragStart.y);
+      renderCanvas();
+      updatePreviewMeta();
+    });
+
+    window.addEventListener('mouseup', () => { preview.isDragging = false; });
+
+    wrap.addEventListener('wheel', e => {
+      if (!preview.nobgImg) return;
+      e.preventDefault();
+      const factor = e.deltaY > 0 ? 0.92 : 1.09;
+      preview.userScale = Math.max(0.05, Math.min(20, preview.userScale * factor));
+      renderCanvas();
+      updatePreviewMeta();
+    }, { passive: false });
+
+    // Touch support
+    let lastTouch = null;
+    wrap.addEventListener('touchstart', e => {
+      if (!preview.nobgImg || e.touches.length !== 1) return;
+      lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY,
+                    panX: preview.panX, panY: preview.panY };
+      e.preventDefault();
+    }, { passive: false });
+    wrap.addEventListener('touchmove', e => {
+      if (!lastTouch || e.touches.length !== 1) return;
+      preview.panX = lastTouch.panX + (e.touches[0].clientX - lastTouch.x);
+      preview.panY = lastTouch.panY + (e.touches[0].clientY - lastTouch.y);
+      renderCanvas();
+      e.preventDefault();
+    }, { passive: false });
+    wrap.addEventListener('touchend', () => { lastTouch = null; });
+  }
+
+  function updateAutoSection() {
+    const inputPath = document.getElementById('inputPath').value.trim();
+    const isManual  = !!(preview.preparedInput && preview.preparedInput === inputPath && preview.preparedPath);
+    document.getElementById('autoSection').disabled = isManual;
+  }
+
+  function updatePreviewMeta() {
+    const el = document.getElementById('previewMeta');
+    if (!preview.nobgImg) { el.textContent = 'No image loaded'; el.className = 'preview-meta'; return; }
+    const pct = Math.round(preview.userScale * 100);
+    const px  = Math.round(preview.panX);
+    const py  = Math.round(preview.panY);
+    el.textContent = `zoom ${pct}%  ·  pan (${px > 0 ? '+' : ''}${px}, ${py > 0 ? '+' : ''}${py})  ·  manual mode`;
+    el.className   = 'preview-meta manual';
+  }
+
+  // ── Prepare (remove BG) ────────────────────────────────────────────────────
+  async function runPrepare() {
+    const inputPath = document.getElementById('inputPath').value.trim();
+    if (!inputPath) {
+      document.getElementById('status').textContent = 'Please select an input file first.';
+      return;
+    }
+    const btn = document.getElementById('btnPrepare');
+    btn.disabled    = true;
+    btn.textContent = 'Removing BG…';
+    document.getElementById('status').textContent = '';
+
+    try {
+      const res  = await fetch('/prepare', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ input: inputPath }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        document.getElementById('status').textContent = `Error: ${data.error}`;
+        return;
+      }
+
+      // Store state
+      preview.preparedPath  = data.path;
+      preview.preparedInput = inputPath;
+      preview.naturalW      = data.width;
+      preview.naturalH      = data.height;
+      preview.panX          = 0;
+      preview.panY          = 0;
+      preview.userScale     = 1.0;
+
+      // Load nobg image
+      preview.nobgImg = new Image();
+      await new Promise(r => {
+        preview.nobgImg.onload  = r;
+        preview.nobgImg.onerror = r;
+        preview.nobgImg.src     = data.url;
+      });
+
+      // Load current overlays
+      loadMaskCanvas(SEL.mask.value);
+      loadFrameImg(SEL.frame.value);
+
+      // Show canvas
+      document.getElementById('canvasPlaceholder').classList.add('hidden');
+      document.getElementById('canvasWrap').classList.add('has-image');
+      document.getElementById('btnReset').disabled = false;
+      document.getElementById('btnMask').disabled  = false;
+      updatePreviewMeta();
+      updateAutoSection();
+
+    } catch (err) {
+      document.getElementById('status').textContent = `Prepare failed: ${err.message}`;
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Remove BG & Preview';
+    }
+  }
+
+  function resetView() {
+    if (preview.originalImg) {
+      preview.nobgImg  = preview.originalImg;
+      preview.naturalW = preview.originalW;
+      preview.naturalH = preview.originalH;
+    }
+    // Clear BG-removal state so next Generate treats this as an unprepared image
+    preview.preparedPath  = null;
+    preview.preparedInput = null;
+    preview.panX          = 0;
+    preview.panY          = 0;
+    preview.userScale     = 1.0;
+    loadMaskCanvas(SEL.mask.value);
+    updateAutoSection();
+    const meta = document.getElementById('previewMeta');
+    meta.textContent = 'Raw preview — click Remove BG & Preview to process';
+    meta.className   = 'preview-meta';
+    renderCanvas();
+  }
+
+  function applyMaskToImage() {
+    if (!preview.nobgImg || !preview.maskCanvas) return;
+    const oc  = document.createElement('canvas');
+    oc.width  = oc.height = CANVAS_PX;
+    const ctx = oc.getContext('2d');
+    const baseScale = CANVAS_PX / Math.min(preview.naturalW, preview.naturalH);
+    const scale = baseScale * preview.userScale;
+    const w = preview.naturalW * scale;
+    const h = preview.naturalH * scale;
+    const x = CANVAS_PX / 2 + preview.panX - w / 2;
+    const y = CANVAS_PX / 2 + preview.panY - h / 2;
+    ctx.drawImage(preview.nobgImg, x, y, w, h);
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.drawImage(preview.maskCanvas, 0, 0);
+    const baked = new Image();
+    baked.onload = () => {
+      preview.nobgImg  = baked;
+      preview.naturalW = CANVAS_PX;
+      preview.naturalH = CANVAS_PX;
+      preview.panX     = 0;
+      preview.panY     = 0;
+      preview.userScale = 1.0;
+      preview.maskCanvas = null;
+      renderCanvas();
+      updatePreviewMeta();
+    };
+    baked.src = oc.toDataURL();
+  }
+
+  const SUPPORTED_IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|tiff?)$/i;
+
+  async function onInputChange() {
+    const current = document.getElementById('inputPath').value.trim();
+
+    // If the prepared image no longer matches, drop manual-mode state
+    if (current !== preview.preparedInput) {
+      preview.preparedInput = null;
+      preview.preparedPath  = null;
+      updateAutoSection();
+    }
+
+    // Load raw preview for single image files
+    if (current && SUPPORTED_IMG_EXT.test(current)) {
+      const url = `/serve?path=${encodeURIComponent(current)}`;
+      const img = new Image();
+      const ok  = await new Promise(r => { img.onload = () => r(true); img.onerror = () => r(false); img.src = url; });
+      if (ok) {
+        preview.nobgImg  = img;
+        preview.naturalW = img.naturalWidth;
+        preview.naturalH = img.naturalHeight;
+        preview.panX = preview.panY = 0;
+        preview.userScale = 1.0;
+        preview.originalImg = img;
+        preview.originalW   = img.naturalWidth;
+        preview.originalH   = img.naturalHeight;
+        document.getElementById('canvasPlaceholder').classList.add('hidden');
+        document.getElementById('canvasWrap').classList.add('has-image');
+        document.getElementById('btnReset').disabled = false;
+        document.getElementById('btnMask').disabled  = false;
+        renderCanvas();
+        const meta = document.getElementById('previewMeta');
+        meta.textContent = 'Raw preview — click Remove BG & Preview to process';
+        meta.className   = 'preview-meta';
+        return;
+      }
+    }
+
+    // Empty / folder / unresolvable — go back to placeholder
+    if (!preview.preparedInput) {
+      preview.nobgImg  = null;
+      preview.naturalW = preview.naturalH = 0;
+      document.getElementById('canvasPlaceholder').classList.remove('hidden');
+      document.getElementById('canvasWrap').classList.remove('has-image');
+      document.getElementById('btnReset').disabled = true;
+      document.getElementById('btnMask').disabled  = true;
+      renderCanvas();
+      updatePreviewMeta();
+    }
+  }
+
+  // ── Generate ───────────────────────────────────────────────────────────────
+  async function runProcess() {
+    const inputPath  = document.getElementById('inputPath').value.trim();
+    const outputPath = document.getElementById('outputPath').value.trim();
+    const btn        = document.getElementById('btnProcess');
+    const statusEl   = document.getElementById('status');
+    const resultsEl  = document.getElementById('results');
+
+    if (!inputPath) { statusEl.textContent = 'Please select an input file or folder.'; return; }
+
+    btn.disabled       = true;
+    resultsEl.innerHTML = '<div class="results-empty">Generating…</div>';
+
+    // Use manual transform whenever a single image file is previewed
+    const isManual = !!(preview.nobgImg && SUPPORTED_IMG_EXT.test(inputPath));
+    const transform = isManual ? {
+      pan_x:      preview.panX / CANVAS_PX,
+      pan_y:      preview.panY / CANVAS_PX,
+      user_scale: preview.userScale,
+      nobg_path:  (preview.preparedInput === inputPath && preview.preparedPath) ? preview.preparedPath : "",
+    } : null;
+
+    statusEl.innerHTML = isManual
+      ? '<em>Generating with manual positioning…</em>'
+      : '<em>Generating with auto pipeline…</em>';
+
+    try {
+      const res  = await fetch('/process', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          input:              inputPath,
+          output:             outputPath,
+          mode:               SEL.mode.value,
+          mask:               SEL.mask.value,
+          size:               parseInt(SEL.size.value),
+          crop_backend:       SEL.crop.value,
+          crop_zoom:          parseInt(SEL.zoom.value),
+          remove_bg_portrait: document.getElementById('toggleBgPortrait').checked,
+          remove_bg_token:    document.getElementById('toggleBgToken').checked,
+          frame:              SEL.frame.value,
+          split_y:            parseInt(document.getElementById('splitY').value) / 100,
+          transform:          transform,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) { statusEl.textContent = `Error: ${data.error}`; return; }
+      const mode = isManual ? 'manual' : 'auto';
+      statusEl.textContent = `Done — ${data.results.length} image(s) processed (${mode}).`;
+      renderResults(data.results, data.errors || []);
+    } catch (err) {
+      statusEl.textContent = `Request failed: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Download helpers ───────────────────────────────────────────────────────
+  function downloadFile(path, filename) {
+    const a = document.createElement('a');
+    a.href = '/serve?path=' + encodeURIComponent(path);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function downloadImgPreview() {
+    const path = document.getElementById('imgPreview').dataset.path;
+    const name = document.getElementById('imgName').textContent;
+    if (path) downloadFile(path, name);
+  }
+
+  // ── Results ────────────────────────────────────────────────────────────────
+  function renderResults(results, errors) {
+    const el = document.getElementById('results');
+    if (!results.length && !errors.length) {
+      el.innerHTML = '<div class="results-empty">No images found.</div>';
+      return;
+    }
+
+    // Collect all downloadable files for "Download All"
+    const allFiles = [];
+    for (const r of results) {
+      for (const k of ['portrait', 'token', 'nobg']) {
+        if (r[k]) allFiles.push({ path: r[k], name: r[k].split(/[\\/]/).pop() });
+      }
+    }
+
+    const dlAllBtn = allFiles.length > 1
+      ? `<button class="btn-dl-all" id="btnDlAll">↓ All (${allFiles.length})</button>`
+      : '';
+    let html = `<div class="results-header"><h2>Results</h2>${dlAllBtn}</div>`;
+
+    for (const r of results) {
+      const rows = ['portrait', 'token', 'nobg'].filter(k => r[k]).map(k => {
+        const name = r[k].split(/[\\/]/).pop();
+        const url  = '/serve?path=' + encodeURIComponent(r[k]);
+        return `
+          <div class="result-row">
+            <img class="result-thumb" src="${url}"
+                 data-path="${escAttr(r[k])}" data-name="${escAttr(name)}"
+                 alt="${escHtml(k)}" title="${escHtml(name)}">
+            <span class="result-row-label">${escHtml(k)}</span>
+            <button class="btn-dl" data-path="${escAttr(r[k])}" data-name="${escAttr(name)}" title="Download">↓</button>
+          </div>`;
+      }).join('');
+      html += `
+        <div class="result-card">
+          <div class="result-card-name" title="${escAttr(r.name)}">${escHtml(r.name)}</div>
+          <div class="result-size">—</div>
+          ${rows}
+        </div>`;
+    }
+    for (const err of errors) {
+      html += `<div class="error-item">⚠ ${escHtml(err)}</div>`;
+    }
+    el.innerHTML = html;
+
+    // Thumbnail click → lightbox; first thumb per card populates the size label
+    el.querySelectorAll('.result-card').forEach(card => {
+      const thumbs = card.querySelectorAll('.result-thumb');
+      const sizeEl = card.querySelector('.result-size');
+      // Use the first thumb to read natural dimensions
+      if (thumbs.length && sizeEl) {
+        const first = thumbs[0];
+        const populate = () => {
+          if (first.naturalWidth) sizeEl.textContent = `${first.naturalWidth} × ${first.naturalHeight} px`;
+        };
+        first.complete ? populate() : first.addEventListener('load', populate);
+      }
+      thumbs.forEach(img => img.addEventListener('click', () => openImgPreview(img.dataset.path, img.dataset.name)));
+    });
+    // Per-file download buttons
+    el.querySelectorAll('.btn-dl').forEach(btn => {
+      btn.addEventListener('click', () => downloadFile(btn.dataset.path, btn.dataset.name));
+    });
+    // Download All
+    const dlAllEl = el.querySelector('#btnDlAll');
+    if (dlAllEl) {
+      dlAllEl.addEventListener('click', () => {
+        allFiles.forEach((f, i) => setTimeout(() => downloadFile(f.path, f.name), i * 200));
+      });
+    }
+  }
 
   // ── Picker ─────────────────────────────────────────────────────────────────
   async function openPicker(type) {
@@ -631,15 +1471,16 @@
 
     let opts = cfg.options;
     if (cfg.dynamic) {
-      const res  = await fetch('/masks');
-      const data = await res.json();
-      opts = data.masks.map(name => ({
+      const res   = await fetch(cfg.fetchUrl);
+      const data  = await res.json();
+      const items = data[cfg.listKey].map(name => ({
         value:   name,
         label:   name.replace(/\.png$/i, ''),
         display: '',
-        img:     '/masks/' + encodeURIComponent(name),
+        img:     cfg.pathPrefix + encodeURIComponent(name),
         hint:    '',
       }));
+      opts = cfg.noneOption ? [cfg.noneOption, ...items] : items;
     }
 
     const curVal = SEL[type].value;
@@ -672,9 +1513,9 @@
     }).join('');
 
     grid.querySelectorAll('.popt').forEach(el => {
-      el.addEventListener('click',       () => selectOption(el));
-      el.addEventListener('mouseenter',  () => { document.getElementById('pickerHint').textContent = el.dataset.hint || ''; });
-      el.addEventListener('mouseleave',  () => { document.getElementById('pickerHint').textContent = ''; });
+      el.addEventListener('click',      () => selectOption(el));
+      el.addEventListener('mouseenter', () => { document.getElementById('pickerHint').textContent = el.dataset.hint || ''; });
+      el.addEventListener('mouseleave', () => { document.getElementById('pickerHint').textContent = ''; });
     });
 
     document.getElementById('pickerHint').textContent = '';
@@ -692,6 +1533,12 @@
     SEL[type].label   = label;
     updateButton(type, value, display, label);
     closePicker();
+
+    // Reload overlays if mask or frame changed
+    if (type === 'mask')  loadMaskCanvas(value);
+    if (type === 'frame') loadFrameImg(value);
+
+    saveSettings();
   }
 
   function updateButton(type, value, display, label) {
@@ -711,6 +1558,18 @@
       img.style.display = '';
       img.src = '/zoom-images/zoom_' + value + '.webp';
       document.getElementById('zoom-fallback').textContent = display;
+    } else if (type === 'frame') {
+      const img = document.getElementById('frame-img');
+      if (value === 'none') {
+        img.style.display = 'none';
+        document.getElementById('frame-fallback').textContent = 'None';
+        document.getElementById('splitRow').classList.remove('visible');
+      } else {
+        img.style.display = '';
+        img.src = '/frames/' + encodeURIComponent(value);
+        document.getElementById('frame-fallback').textContent = '';
+        document.getElementById('splitRow').classList.add('visible');
+      }
     }
     document.getElementById('sn-' + type).textContent = label;
   }
@@ -730,87 +1589,14 @@
     const data = await res.json();
     if (!data.path) return;
     document.getElementById(type === 'output' ? 'outputPath' : 'inputPath').value = data.path;
+    if (type !== 'output') onInputChange();
   }
 
-  // ── Process ────────────────────────────────────────────────────────────────
-  async function runProcess() {
-    const inputPath  = document.getElementById('inputPath').value.trim();
-    const outputPath = document.getElementById('outputPath').value.trim();
-    const btn        = document.getElementById('btnProcess');
-    const statusEl   = document.getElementById('status');
-    const resultsEl  = document.getElementById('results');
-
-    if (!inputPath) { statusEl.textContent = 'Please select an input file or folder.'; return; }
-
-    btn.disabled        = true;
-    statusEl.innerHTML  = '<em>Processing… this may take a moment per image.</em>';
-    resultsEl.innerHTML = '';
-
-    try {
-      const res  = await fetch('/process', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          input:               inputPath,
-          output:              outputPath,
-          mode:                SEL.mode.value,
-          mask:                SEL.mask.value,
-          size:                parseInt(SEL.size.value),
-          crop_backend:        SEL.crop.value,
-          crop_zoom:           parseInt(SEL.zoom.value),
-          remove_bg_portrait:  document.getElementById('toggleBgPortrait').checked,
-          remove_bg_token:     document.getElementById('toggleBgToken').checked,
-        }),
-      });
-      const data = await res.json();
-      if (data.error) { statusEl.textContent = `Error: ${data.error}`; return; }
-      statusEl.textContent = `Done — ${data.results.length} image(s) processed.`;
-      renderResults(data.results, data.errors || []);
-    } catch (err) {
-      statusEl.textContent = `Request failed: ${err.message}`;
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  // ── Results ────────────────────────────────────────────────────────────────
-  function renderResults(results, errors) {
-    const el = document.getElementById('results');
-    if (!results.length && !errors.length) {
-      el.innerHTML = '<p style="color:var(--muted);font-size:.85rem">No images found.</p>';
-      return;
-    }
-
-    let html = '<h2>Results</h2>';
-    for (const r of results) {
-      const files = ['portrait', 'token', 'nobg']
-        .filter(k => r[k])
-        .map(k => {
-          const name = r[k].split(/[\\/]/).pop();
-          return `<span class="result-badge" data-path="${escAttr(r[k])}" data-name="${escAttr(name)}">${escHtml(name)}</span>`;
-        }).join('');
-      html += `
-        <div class="result-item">
-          <div class="result-icon">✓</div>
-          <div>
-            <div class="result-name">${escHtml(r.name)}</div>
-            <div class="result-files">${files}</div>
-          </div>
-        </div>`;
-    }
-    for (const err of errors) {
-      html += `<div class="error-item">⚠ ${escHtml(err)}</div>`;
-    }
-
-    el.innerHTML = html;
-    el.querySelectorAll('.result-badge').forEach(badge => {
-      badge.addEventListener('click', () => openImgPreview(badge.dataset.path, badge.dataset.name));
-    });
-  }
-
-  // ── Image preview ──────────────────────────────────────────────────────────
+  // ── Image lightbox ─────────────────────────────────────────────────────────
   function openImgPreview(path, name) {
-    document.getElementById('imgPreview').src = '/serve?path=' + encodeURIComponent(path);
+    const img = document.getElementById('imgPreview');
+    img.src          = '/serve?path=' + encodeURIComponent(path);
+    img.dataset.path = path;
     document.getElementById('imgName').textContent = name;
     document.getElementById('imgOverlay').classList.add('open');
   }
@@ -821,6 +1607,58 @@
     }
   }
 
+  // ── Settings persistence ───────────────────────────────────────────────────
+  const SETTINGS_KEY = 'tokenificator_settings';
+
+  function saveSettings() {
+    const s = {
+      sel: {
+        mode:  { value: SEL.mode.value,  display: SEL.mode.display,  label: SEL.mode.label  },
+        mask:  { value: SEL.mask.value,  display: SEL.mask.display,  label: SEL.mask.label  },
+        size:  { value: SEL.size.value,  display: SEL.size.display,  label: SEL.size.label  },
+        crop:  { value: SEL.crop.value,  display: SEL.crop.display,  label: SEL.crop.label  },
+        zoom:  { value: SEL.zoom.value,  display: SEL.zoom.display,  label: SEL.zoom.label  },
+        frame: { value: SEL.frame.value, display: SEL.frame.display, label: SEL.frame.label },
+      },
+      removeBgPortrait: document.getElementById('toggleBgPortrait').checked,
+      removeBgToken:    document.getElementById('toggleBgToken').checked,
+      splitY:           document.getElementById('splitY').value,
+      outputPath:       document.getElementById('outputPath').value.trim(),
+    };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  }
+
+  function loadSettings() {
+    let s;
+    try { s = JSON.parse(localStorage.getItem(SETTINGS_KEY)); } catch { return; }
+    if (!s) return;
+
+    if (s.sel) {
+      for (const [type, data] of Object.entries(s.sel)) {
+        if (SEL[type] && data.value !== undefined) {
+          SEL[type].value   = data.value;
+          SEL[type].display = data.display;
+          SEL[type].label   = data.label;
+          updateButton(type, data.value, data.display, data.label);
+        }
+      }
+      loadMaskCanvas(SEL.mask.value);
+      loadFrameImg(SEL.frame.value);
+    }
+
+    if (s.removeBgPortrait !== undefined)
+      document.getElementById('toggleBgPortrait').checked = s.removeBgPortrait;
+    if (s.removeBgToken !== undefined)
+      document.getElementById('toggleBgToken').checked = s.removeBgToken;
+    if (s.splitY !== undefined) {
+      const el = document.getElementById('splitY');
+      el.value = s.splitY;
+      document.getElementById('splitLabel').textContent = s.splitY + '%';
+    }
+    if (s.outputPath)
+      document.getElementById('outputPath').value = s.outputPath;
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -828,6 +1666,16 @@
   function escAttr(s) {
     return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  initCanvas();
+  loadSettings();
+  renderCanvas(); // draws checkerboard on load
+
+  document.getElementById('toggleBgPortrait').addEventListener('change', saveSettings);
+  document.getElementById('toggleBgToken').addEventListener('change', saveSettings);
+  document.getElementById('splitY').addEventListener('input', saveSettings);
+  document.getElementById('outputPath').addEventListener('input', saveSettings);
 </script>
 </body>
 </html>
