@@ -186,9 +186,12 @@ def process():
     mask_path  = MASKS_DIR / mask_name if mask_name else None
     frame_path = FRAMES_DIR / frame_name if frame_name and frame_name != "none" else None
 
-    # Validate transform if provided
-    if transform and not Path(transform.get("nobg_path", "")).exists():
-        transform = None  # stale prep file; fall back to auto
+    # Validate transform if provided — only discard if a nobg_path was given but the file is gone (stale).
+    # An empty nobg_path is valid: the Python pipeline will run rembg inline.
+    if transform:
+        nobg_path_val = (transform.get("nobg_path") or "").strip()
+        if nobg_path_val and not Path(nobg_path_val).exists():
+            transform = None  # stale prep file; fall back to auto
 
     results = []
     errors  = []

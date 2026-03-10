@@ -204,24 +204,38 @@ def process_file(
     print(f"\nProcessing: {src.name}  [mode={mode}, size={size}]")
 
     result = {}
+    raw = Image.open(src).convert("RGBA")
+    already_transparent = _has_transparency(raw)
 
     # ── Manual-transform path (preview mode) ─────────────────────────────────
     if transform:
-        nobg = Image.open(Path(transform["nobg_path"])).convert("RGBA")
+        nobg_path_str = (transform.get("nobg_path") or "").strip()
         pan_x      = float(transform.get("pan_x",      0.0))
         pan_y      = float(transform.get("pan_y",      0.0))
         user_scale = float(transform.get("user_scale", 1.0))
         print(f"  [manual] pan=({pan_x:.3f},{pan_y:.3f}) zoom={user_scale:.2f}")
 
+        if nobg_path_str and Path(nobg_path_str).exists():
+            nobg = Image.open(Path(nobg_path_str)).convert("RGBA")
+        elif already_transparent:
+            print("  [skip] Source already has alpha — skipping background removal")
+            nobg = raw
+        else:
+            print("  [1/?] Removing background…")
+            nobg = remove_background(raw)
+
+        portrait_src = nobg if remove_bg_portrait else raw
+        token_src    = nobg if remove_bg_token    else raw
+
         if mode in ("both", "portrait"):
-            scaled = apply_manual_transform(nobg, pan_x, pan_y, user_scale, size)
+            scaled = apply_manual_transform(portrait_src, pan_x, pan_y, user_scale, size)
             path   = out_dir / f"{src.stem}.webp"
             _save(scaled, path)
             print(f"  ✓ Portrait → {path.name}")
             result["portrait"] = path
 
         if mode in ("both", "token"):
-            scaled = apply_manual_transform(nobg, pan_x, pan_y, user_scale, size)
+            scaled = apply_manual_transform(token_src, pan_x, pan_y, user_scale, size)
             token  = apply_mask(scaled.copy(), load_token_mask(size, mask_path))
             if frame_path:
                 token = apply_frame(token, Image.open(frame_path).convert("RGBA"), split_y)
@@ -232,9 +246,6 @@ def process_file(
 
         return result
     # ─────────────────────────────────────────────────────────────────────────
-
-    raw = Image.open(src).convert("RGBA")
-    already_transparent = _has_transparency(raw)
 
     if mode == "nobg":
         if already_transparent:
