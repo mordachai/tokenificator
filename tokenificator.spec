@@ -8,14 +8,25 @@ Build:
 Output: dist/Tokenificator/Tokenificator.exe  (onedir — fast startup)
 Users can add masks/frames next to Tokenificator.exe and they appear in the UI.
 """
+from PyInstaller.utils.hooks import copy_metadata
 
 block_cipher = None
+
+# Packages that call importlib.metadata.version() on themselves at import time
+# must have their dist-info metadata bundled explicitly.
+_metadata = (
+    copy_metadata("pymatting")
+    + copy_metadata("rembg")
+    + copy_metadata("onnxruntime")
+    + copy_metadata("Pillow")
+    + copy_metadata("numpy")
+)
 
 a = Analysis(
     ["main.py"],
     pathex=[],
     binaries=[],
-    datas=[
+    datas=_metadata + [
         ("templates",   "templates"),
         ("masks",       "masks"),
         ("frames",      "frames"),

@@ -33,7 +33,7 @@ Custom masks and frames go in the `masks/` and `frames/` folders next to the exe
 ## Quickstart — from source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/tokenificator.git
+git clone https://github.com/mordachai/tokenificator.git
 cd tokenificator
 pip install rembg pillow flask
 python main.py

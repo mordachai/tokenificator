@@ -19,6 +19,9 @@ tmp/
 # Output files
 *.webp
 
+# Release zips (upload to GitHub Releases, don't commit)
+*.zip
+
 # OS
 .DS_Store
 Thumbs.db
