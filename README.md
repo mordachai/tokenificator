@@ -21,9 +21,10 @@ Everything runs locally. The AI model downloads once (~100 MB) and is cached.
 
 ## Quickstart — .exe
 
-1. Build the exe (see [Building](#building)) or grab a release
-2. Unzip and double-click `Tokenificator.exe`
-3. The browser opens automatically at `http://localhost:5000`
+1. Download the latest release: **[Tokenificator-v1.0-windows.zip](https://github.com/mordachai/tokenificator/releases/latest)**
+2. Unzip anywhere
+3. Double-click `Tokenificator.exe`
+4. The browser opens automatically at `http://localhost:5000`
 
 Custom masks and frames go in the `masks/` and `frames/` folders next to the exe — they appear in the UI instantly.
 
