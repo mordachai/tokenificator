@@ -27,9 +27,10 @@ DEFAULT_SIZE  = 512
 VALID_SIZES   = (256, 512, 1024, 2048)
 WEBP_QUALITY  = 90
 SUPPORTED_EXT = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tiff"}
-MASKS_DIR     = Path(__file__).parent / "masks"
+from _paths import DATA_DIR as _DATA_DIR
+MASKS_DIR     = _DATA_DIR / "masks"
 MASK_FILE     = MASKS_DIR / "bottom-half.png"
-FRAMES_DIR    = Path(__file__).parent / "frames"
+FRAMES_DIR    = _DATA_DIR / "frames"
 # ─────────────────────────────────────────────────────────────────────────────
 
 

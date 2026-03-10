@@ -18,11 +18,13 @@ from token_processor import (
     remove_background, _has_transparency,
 )
 
+from _paths import BUNDLE_DIR, DATA_DIR  # noqa: E402
+
 app = Flask(__name__, static_folder=None)
-TEMPLATES_DIR   = Path(__file__).parent / "templates"
-MODE_IMAGES_DIR = Path(__file__).parent / "mode_images"
-ZOOM_IMAGES_DIR = Path(__file__).parent / "zoom_images"
-TMP_DIR         = Path(__file__).parent / "tmp"
+TEMPLATES_DIR   = BUNDLE_DIR / "templates"
+MODE_IMAGES_DIR = DATA_DIR   / "mode_images"
+ZOOM_IMAGES_DIR = DATA_DIR   / "zoom_images"
+TMP_DIR         = DATA_DIR   / "tmp"
 MODE_IMAGES_DIR.mkdir(exist_ok=True)
 ZOOM_IMAGES_DIR.mkdir(exist_ok=True)
 FRAMES_DIR.mkdir(exist_ok=True)
