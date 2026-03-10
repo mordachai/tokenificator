@@ -131,6 +131,16 @@ def apply_manual_transform(
     return out
 
 
+def make_circle_mask(size: int, radius_pct: float) -> Image.Image:
+    """Create an L-mode circular mask. radius_pct=1.0 → full inscribed circle (no crop)."""
+    from PIL import ImageDraw
+    mask = Image.new("L", (size, size), 0)
+    r = radius_pct * size / 2
+    cx = cy = size / 2
+    ImageDraw.Draw(mask).ellipse([cx - r, cy - r, cx + r, cy + r], fill=255)
+    return mask
+
+
 def apply_frame(char: Image.Image, frame: Image.Image, split_y: float = 0.5) -> Image.Image:
     """Composite a decorative frame over a character token.
 
@@ -186,6 +196,7 @@ def process_file(
     frame_path: Path | None = None,
     split_y: float = 0.5,
     transform: dict | None = None,
+    circle_mask_pct: float = 1.0,
 ) -> dict:
     """
     Process one image.
@@ -238,6 +249,8 @@ def process_file(
         if mode in ("both", "token"):
             scaled = apply_manual_transform(token_src, pan_x, pan_y, user_scale, size)
             token  = apply_mask(scaled.copy(), load_token_mask(size, mask_path))
+            if circle_mask_pct < 1.0:
+                token = apply_mask(token, make_circle_mask(size, circle_mask_pct))
             if frame_path:
                 token = apply_frame(token, Image.open(frame_path).convert("RGBA"), split_y)
             path  = out_dir / f"{src.stem}_token.webp"
@@ -303,6 +316,8 @@ def process_file(
         token_scaled = scale_to_canvas(token_src, size, top_bias=False)
         print("  [4/?] Applying mask…")
         token = apply_mask(token_scaled.copy(), load_token_mask(size, mask_path))
+        if circle_mask_pct < 1.0:
+            token = apply_mask(token, make_circle_mask(size, circle_mask_pct))
         if frame_path:
             print("  [5/?] Applying frame…")
             frame_img = Image.open(frame_path).convert("RGBA")
@@ -328,6 +343,7 @@ def process_folder(
     frame_path: Path | None = None,
     split_y: float = 0.5,
     transform: dict | None = None,
+    circle_mask_pct: float = 1.0,
 ) -> list[dict]:
     """Process every supported image in folder (non-recursive)."""
     images = sorted(f for f in folder.iterdir() if f.suffix.lower() in SUPPORTED_EXT)
@@ -340,7 +356,8 @@ def process_folder(
             results.append(process_file(img_path, out_dir, mode, mask_path, size,
                                         crop_backend, crop_zoom,
                                         remove_bg_portrait, remove_bg_token,
-                                        frame_path, split_y, transform))
+                                        frame_path, split_y, transform,
+                                        circle_mask_pct))
         except Exception as exc:
             print(f"  ! Skipped {img_path.name}: {exc}")
     return results

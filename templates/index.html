@@ -161,7 +161,15 @@
     .btn-primary:hover { background: #c73350; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; background: var(--accent); }
 
+    /* ── Scrollbars ── */
+    * { scrollbar-width: thin; scrollbar-color: #0f3460 transparent; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
     .hint { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
+    .hint-inline { font-size: 0.72rem; color: var(--muted); }
 
     /* ── Selector layout ── */
     .selector-layout {
@@ -212,10 +220,30 @@
       letter-spacing: 0.08em;
       color: var(--muted);
     }
+    .col-label-row {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      min-height: 0;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      opacity: 0.7;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .icon-btn:hover { opacity: 1; color: var(--accent); background: none; }
 
     /* ── Selector button ── */
     .sel-btn {
-      width: 100%;
+      width: 90%;
       aspect-ratio: 1;
       display: flex;
       flex-direction: column;
@@ -729,14 +757,13 @@
     <div class="controls-panel">
 
       <div class="field">
-        <label>Input — file or folder</label>
+        <label>Input — file or folder <span class="hint-inline">· PNG, JPG, WebP, and more</span></label>
         <div class="input-row">
           <input type="text" id="inputPath" placeholder="C:\portraits\Wizard.png"
                  oninput="onInputChange()" />
           <button onclick="browse('file')">File</button>
           <button onclick="browse('folder')">Folder</button>
         </div>
-        <p class="hint">Single image or a folder — PNG, JPG, WebP, and more</p>
       </div>
 
       <div class="field">
@@ -775,7 +802,14 @@
           </div>
 
           <div class="selector-col">
-            <div class="col-label">Frame</div>
+            <div class="col-label col-label-row">
+              Frame
+              <button class="icon-btn" onclick="browseFrameFolder()" title="Browse folder for frames">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M2 5a2 2 0 012-2h3.586a1 1 0 01.707.293L9.707 4.707A1 1 0 0010.414 5H16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V5z"/>
+                </svg>
+              </button>
+            </div>
             <button class="sel-btn" onclick="openPicker('frame')">
               <div class="sel-visual" id="sv-frame">
                 <img id="frame-img" src="" alt="" style="display:none" onerror="this.style.display='none'">
@@ -799,7 +833,7 @@
         </div><!-- /main-selectors -->
 
         <fieldset class="auto-section" id="autoSection">
-          <legend>Automatic</legend>
+          <legend>Automatic <span class="hint-inline">· Top = no AI &nbsp;|&nbsp; MediaPipe / InsightFace = AI &nbsp;|&nbsp; Zoom ignored in manual mode</span></legend>
           <div class="auto-selectors">
 
             <div class="selector-col">
@@ -824,20 +858,26 @@
             </div>
 
           </div><!-- /auto-selectors -->
-          <p class="hint" style="margin:0"><b>Face Crop</b>: Top = no AI &nbsp;|&nbsp; MediaPipe / InsightFace = AI detection<br>
-          <b>Zoom</b>: token crop only — ignored in manual mode</p>
         </fieldset>
 
       </div><!-- /selector-layout -->
 
       <div class="split-row" id="splitRow">
         <div class="split-label-row">
-          <span>Overflow line</span>
+          <span>Overflow line <span class="hint-inline">· pixels above pop over the frame</span></span>
           <span id="splitLabel">50%</span>
         </div>
-        <input type="range" id="splitY" min="10" max="90" value="50" step="5"
+        <input type="range" id="splitY" min="10" max="90" value="50" step="1"
                oninput="document.getElementById('splitLabel').textContent=this.value+'%'; onOverlaySettingChange()">
-        <p class="hint" style="margin-top:0.3rem">Character pixels above this line pop over the frame.</p>
+      </div>
+
+      <div class="split-row visible">
+        <div class="split-label-row">
+          <span>Circle mask <span class="hint-inline">· circular crop over token mask, 100% = off</span></span>
+          <span id="circleMaskLabel">100%</span>
+        </div>
+        <input type="range" id="circleMask" min="10" max="100" value="100" step="1"
+               oninput="document.getElementById('circleMaskLabel').textContent=this.value+'%'; onOverlaySettingChange()">
       </div>
 
       <div class="toggle-row">
@@ -1007,6 +1047,19 @@
       ctx.globalCompositeOperation = 'destination-in';
       ctx.drawImage(preview.maskCanvas, 0, 0);
     }
+    const circlePct = parseInt(document.getElementById('circleMask').value) / 100;
+    if (circlePct < 1.0) {
+      const r = circlePct * CANVAS_PX / 2;
+      const cc  = document.createElement('canvas');
+      cc.width  = cc.height = CANVAS_PX;
+      const cctx = cc.getContext('2d');
+      cctx.fillStyle = '#fff';
+      cctx.beginPath();
+      cctx.arc(CANVAS_PX / 2, CANVAS_PX / 2, r, 0, Math.PI * 2);
+      cctx.fill();
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(cc, 0, 0);
+    }
     return oc;
   }
 
@@ -1082,7 +1135,11 @@
     const img = new Image();
     img.onload  = () => { preview.frameImg = img; renderCanvas(); };
     img.onerror = () => { preview.frameImg = null; renderCanvas(); };
-    img.src = '/frames/' + encodeURIComponent(frameName);
+    // absolute paths (from external folder browse) must go through /serve
+    const isAbsolute = /^([A-Za-z]:[\\/]|\/(?!\/))/  .test(frameName);
+    img.src = isAbsolute
+      ? '/serve?path=' + encodeURIComponent(frameName)
+      : '/frames/'    + encodeURIComponent(frameName);
   }
 
   // Called when mask / frame / splitY changes
@@ -1359,6 +1416,7 @@
           remove_bg_token:    document.getElementById('toggleBgToken').checked,
           frame:              SEL.frame.value,
           split_y:            parseInt(document.getElementById('splitY').value) / 100,
+          circle_mask:        parseInt(document.getElementById('circleMask').value) / 100,
           transform:          transform,
         }),
       });
@@ -1454,33 +1512,74 @@
     el.querySelectorAll('.btn-dl').forEach(btn => {
       btn.addEventListener('click', () => downloadFile(btn.dataset.path, btn.dataset.name));
     });
-    // Download All
+    // Download All as ZIP
     const dlAllEl = el.querySelector('#btnDlAll');
     if (dlAllEl) {
-      dlAllEl.addEventListener('click', () => {
-        allFiles.forEach((f, i) => setTimeout(() => downloadFile(f.path, f.name), i * 200));
+      dlAllEl.addEventListener('click', async () => {
+        dlAllEl.disabled = true;
+        dlAllEl.textContent = 'Zipping…';
+        try {
+          const res  = await fetch('/download-zip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ files: allFiles }),
+          });
+          const blob = await res.blob();
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement('a');
+          a.href     = url;
+          a.download = 'tokens.zip';
+          a.click();
+          URL.revokeObjectURL(url);
+        } finally {
+          dlAllEl.disabled = false;
+          dlAllEl.textContent = `↓ All (${allFiles.length})`;
+        }
       });
     }
   }
 
   // ── Picker ─────────────────────────────────────────────────────────────────
-  async function openPicker(type) {
+  async function browseFrameFolder() {
+    const res  = await fetch('/open-folder');
+    const data = await res.json();
+    if (!data.path) return;
+
+    const res2  = await fetch('/list-dir-frames?dir=' + encodeURIComponent(data.path));
+    const data2 = await res2.json();
+    if (data2.error) { document.getElementById('status').textContent = `Frame folder error: ${data2.error}`; return; }
+
+    const noneOpt = PICKER_CFG.frame.noneOption;
+    const items = data2.frames.map(fullPath => ({
+      value:   fullPath,
+      label:   fullPath.split(/[\\/]/).pop().replace(/\.(png|webp)$/i, ''),
+      display: '',
+      img:     '/serve?path=' + encodeURIComponent(fullPath),
+      hint:    fullPath,
+    }));
+    openPicker('frame', [noneOpt, ...items]);
+  }
+
+  async function openPicker(type, overrideOpts = null) {
     currentPicker = type;
     const cfg = PICKER_CFG[type];
     document.getElementById('picker-title').textContent = cfg.title;
 
-    let opts = cfg.options;
-    if (cfg.dynamic) {
-      const res   = await fetch(cfg.fetchUrl);
-      const data  = await res.json();
-      const items = data[cfg.listKey].map(name => ({
-        value:   name,
-        label:   name.replace(/\.png$/i, ''),
-        display: '',
-        img:     cfg.pathPrefix + encodeURIComponent(name),
-        hint:    '',
-      }));
-      opts = cfg.noneOption ? [cfg.noneOption, ...items] : items;
+    let opts = overrideOpts;
+    if (!opts) {
+      opts = cfg.options;
+      if (cfg.dynamic) {
+        const res   = await fetch(cfg.fetchUrl);
+        const data  = await res.json();
+        const items = data[cfg.listKey].map(name => ({
+          value:   name,
+          label:   name.replace(/\.(png|webp)$/i, ''),
+          display: '',
+          img:     cfg.pathPrefix + encodeURIComponent(name),
+          hint:    '',
+        }));
+        opts = cfg.noneOption ? [cfg.noneOption, ...items] : items;
+      }
     }
 
     const curVal = SEL[type].value;
@@ -1623,6 +1722,7 @@
       removeBgPortrait: document.getElementById('toggleBgPortrait').checked,
       removeBgToken:    document.getElementById('toggleBgToken').checked,
       splitY:           document.getElementById('splitY').value,
+      circleMask:       document.getElementById('circleMask').value,
       outputPath:       document.getElementById('outputPath').value.trim(),
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
@@ -1655,6 +1755,11 @@
       el.value = s.splitY;
       document.getElementById('splitLabel').textContent = s.splitY + '%';
     }
+    if (s.circleMask !== undefined) {
+      const el = document.getElementById('circleMask');
+      el.value = s.circleMask;
+      document.getElementById('circleMaskLabel').textContent = s.circleMask + '%';
+    }
     if (s.outputPath)
       document.getElementById('outputPath').value = s.outputPath;
   }
@@ -1675,6 +1780,7 @@
   document.getElementById('toggleBgPortrait').addEventListener('change', saveSettings);
   document.getElementById('toggleBgToken').addEventListener('change', saveSettings);
   document.getElementById('splitY').addEventListener('input', saveSettings);
+  document.getElementById('circleMask').addEventListener('input', saveSettings);
   document.getElementById('outputPath').addEventListener('input', saveSettings);
 </script>
 </body>

@@ -5,7 +5,9 @@ Run:  python app.py
 Then open http://localhost:5000
 """
 
+import io
 import uuid
+import zipfile
 from pathlib import Path
 from PIL import Image
 from flask import Flask, jsonify, send_from_directory, send_file, request
@@ -61,6 +63,23 @@ def serve_output():
     return send_file(p, mimetype=_MIME.get(p.suffix.lower(), 'application/octet-stream'))
 
 
+@app.post("/download-zip")
+def download_zip():
+    """Bundle a list of local files into a ZIP and stream it to the browser.
+    Body: { "files": [{"path": "...", "name": "..."}, ...] }
+    """
+    files = request.get_json(force=True).get("files", [])
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in files:
+            p = Path(f.get("path", ""))
+            if p.exists() and p.is_file():
+                zf.write(p, f.get("name", p.name))
+    buf.seek(0)
+    return send_file(buf, mimetype="application/zip",
+                     as_attachment=True, download_name="tokens.zip")
+
+
 @app.get("/masks")
 def list_masks():
     masks = sorted(p.name for p in MASKS_DIR.glob("*.png"))
@@ -74,7 +93,22 @@ def serve_mask(filename):
 
 @app.get("/frames")
 def list_frames():
-    frames = sorted(p.name for p in FRAMES_DIR.glob("*.png"))
+    frames = sorted(p.name for p in FRAMES_DIR.iterdir()
+                    if p.suffix.lower() in (".png", ".webp"))
+    return jsonify({"frames": frames})
+
+
+@app.get("/list-dir-frames")
+def list_dir_frames():
+    """List all PNG/WebP files in any folder on disk."""
+    dir_path = request.args.get("dir", "").strip()
+    if not dir_path:
+        return jsonify({"error": "No dir"}), 400
+    p = Path(dir_path)
+    if not p.exists() or not p.is_dir():
+        return jsonify({"error": "Not a directory"}), 400
+    frames = sorted(str(f) for f in p.iterdir()
+                    if f.suffix.lower() in (".png", ".webp"))
     return jsonify({"frames": frames})
 
 
@@ -172,9 +206,10 @@ def process():
     crop_zoom         = int(data.get("crop_zoom", 1))
     remove_bg_portrait = bool(data.get("remove_bg_portrait", True))
     remove_bg_token    = bool(data.get("remove_bg_token", True))
-    frame_name = data.get("frame", "none")
-    split_y    = float(data.get("split_y", 0.5))
-    transform  = data.get("transform", None)   # dict or None
+    frame_name      = data.get("frame", "none")
+    split_y         = float(data.get("split_y", 0.5))
+    circle_mask_pct = max(0.1, min(1.0, float(data.get("circle_mask", 1.0))))
+    transform       = data.get("transform", None)   # dict or None
 
     if size not in VALID_SIZES:
         size = DEFAULT_SIZE
@@ -184,9 +219,13 @@ def process():
         crop_zoom = 1
     split_y = max(0.1, min(0.9, split_y))
 
-    out_dir    = Path(output_str) if output_str else None
-    mask_path  = MASKS_DIR / mask_name if mask_name else None
-    frame_path = FRAMES_DIR / frame_name if frame_name and frame_name != "none" else None
+    out_dir   = Path(output_str) if output_str else None
+    mask_path = MASKS_DIR / mask_name if mask_name else None
+    if frame_name and frame_name != "none":
+        fp = Path(frame_name)
+        frame_path = fp if fp.is_absolute() else FRAMES_DIR / frame_name
+    else:
+        frame_path = None
 
     # Validate transform if provided — only discard if a nobg_path was given but the file is gone (stale).
     # An empty nobg_path is valid: the Python pipeline will run rembg inline.
@@ -206,12 +245,12 @@ def process():
             file_results = process_folder(input_path, out_dir, mode, mask_path, size,
                                           crop_backend, crop_zoom,
                                           remove_bg_portrait, remove_bg_token,
-                                          frame_path, split_y)
+                                          frame_path, split_y, None, circle_mask_pct)
         else:
             file_results = [process_file(input_path, out_dir, mode, mask_path, size,
                                          crop_backend, crop_zoom,
                                          remove_bg_portrait, remove_bg_token,
-                                         frame_path, split_y, transform)]
+                                         frame_path, split_y, transform, circle_mask_pct)]
 
         for r in file_results:
             entry = {}

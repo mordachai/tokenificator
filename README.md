@@ -6,19 +6,6 @@ Turn portrait images into Foundry VTT-ready tokens — fully offline, no subscri
 
 ---
 
-## What it does
-
-Drop in a portrait. Get back a clean token.
-
-- **Removes the background** with an AI model ([rembg](https://github.com/danielgatis/rembg))
-- **Applies a mask** — circle, bottom-half, grunge, hex, or your own PNG
-- **Overlays a decorative frame** (optional)
-- **Outputs WebP** at 256 / 512 / 1024 / 2048 px — portrait and token in one pass
-
-Everything runs locally. The AI model downloads once (~100 MB) and is cached.
-
----
-
 ## Quickstart — .exe
 
 1. Download the latest release: **[Tokenificator-v1.0-windows.zip](https://github.com/mordachai/tokenificator/releases/latest)**
@@ -36,7 +23,7 @@ Custom masks and frames go in the `masks/` and `frames/` folders next to the exe
 git clone https://github.com/mordachai/tokenificator.git
 cd tokenificator
 pip install rembg pillow flask
-python main.py
+python app.py
 ```
 
 Open `http://localhost:5000`.
@@ -47,6 +34,19 @@ Optional face-detection backends:
 pip install mediapipe    # lightweight, auto-downloads model
 pip install insightface  # more accurate, heavier
 ```
+
+---
+
+## What it does
+
+Drop in a portrait. Get back a clean token.
+
+- **Removes the background** with an AI model ([rembg](https://github.com/danielgatis/rembg))
+- **Applies a mask** — circle, bottom-half, grunge, hex, or your own PNG
+- **Overlays a decorative frame** (optional, browse any folder on disk)
+- **Outputs WebP** at 256 / 512 / 1024 / 2048 px — portrait and token in one pass
+
+Everything runs locally. The AI model downloads once (~100 MB) and is cached.
 
 ---
 
@@ -72,17 +72,18 @@ The UI is a single page with three columns:
 - **Output** — leave empty to save next to the source
 - **Mode** — Portrait + Token / Portrait only / Token only / BG removed only
 - **Mask** — shape applied to the token
-- **Frame** — decorative ring composited over the token (character overflows above it)
+- **Frame** — decorative ring composited over the token; browse any folder for frames
 - **Size** — output canvas in pixels
 - **Crop** — optional AI face-detection crop (None / Top / MediaPipe / InsightFace)
 - **Zoom** — crop tightness: Wide / Medium / Tight
+- **Circle mask** — additional circular crop applied on top of the token mask (10–100%, 100% = off)
 - **Remove BG** — independent toggles for portrait and token
 
 ### Results panel
 
 - Thumbnails appear after each generate run
 - Click a thumbnail to preview full-size
-- Download individual files or all at once
+- Download individual files or **all as a single ZIP**
 
 ---
 
@@ -134,7 +135,7 @@ python token_processor.py --folder ./portraits --output-dir ./tokens
 ## Custom masks and frames
 
 Any L-mode (grayscale) PNG dropped into the `masks/` folder appears as a mask option.
-Any RGBA PNG in `frames/` appears as a frame option.
+Any RGBA PNG or WebP in `frames/` appears as a frame option — or browse any folder on disk via the folder icon next to the Frame picker.
 Restart not required — the UI reads the folders on every picker open.
 
 ---
