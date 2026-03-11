@@ -16,8 +16,9 @@ models/*.tflite
 # Temp files from /prepare endpoint
 tmp/
 
-# Output files
+# Output files (keep UI asset folders)
 *.webp
+!zoom_images/*.webp
 
 # Release zips (upload to GitHub Releases, don't commit)
 *.zip
