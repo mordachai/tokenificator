@@ -131,15 +131,16 @@ def prepare():
     Body: { "input": "<file path>" }
     Returns: { "url": "/tmp/...", "path": "<tmp file path>", "width": N, "height": N }
     """
-    data       = request.get_json(force=True)
-    input_path = Path(data.get("input", ""))
+    data        = request.get_json(force=True)
+    input_path  = Path(data.get("input", ""))
+    rembg_model = data.get("rembg_model", "u2net").strip() or "u2net"
 
     if not input_path.exists() or not input_path.is_file():
         return jsonify({"error": f"File not found: {input_path}"}), 400
     if input_path.suffix.lower() not in SUPPORTED_EXT:
         return jsonify({"error": f"Unsupported format: {input_path.suffix}"}), 400
 
-    print(f"\nPreparing: {input_path.name}")
+    print(f"\nPreparing: {input_path.name}  [model={rembg_model}]")
     raw = Image.open(input_path).convert("RGBA")
 
     if _has_transparency(raw):
@@ -147,7 +148,7 @@ def prepare():
         nobg = raw
     else:
         print("  [1/1] Removing background…")
-        nobg = remove_background(raw)
+        nobg = remove_background(raw, rembg_model)
 
     tmp_name = f"prep_{input_path.stem}_{uuid.uuid4().hex[:8]}.png"
     tmp_path = TMP_DIR / tmp_name
@@ -229,6 +230,7 @@ def process():
     split_y         = float(data.get("split_y", 0.5))
     circle_mask_pct = max(0.1, min(1.0, float(data.get("circle_mask", 1.0))))
     transform       = data.get("transform", None)   # dict or None
+    rembg_model     = data.get("rembg_model", "u2net").strip() or "u2net"
 
     if size not in VALID_SIZES:
         size = DEFAULT_SIZE
@@ -248,13 +250,10 @@ def process():
 
     # Validate transform if provided — only discard if a nobg_path was given but the file is gone (stale).
     # An empty nobg_path is valid: the Python pipeline will run rembg inline.
-    nobg_tmp_to_delete = None
     if transform:
         nobg_path_val = (transform.get("nobg_path") or "").strip()
         if nobg_path_val and not Path(nobg_path_val).exists():
             transform = None  # stale prep file; fall back to auto
-        elif nobg_path_val:
-            nobg_tmp_to_delete = Path(nobg_path_val)
 
     results = []
     errors  = []
@@ -267,12 +266,14 @@ def process():
             file_results = process_folder(input_path, out_dir, mode, mask_path, size,
                                           crop_backend, crop_zoom,
                                           remove_bg_portrait, remove_bg_token,
-                                          frame_path, split_y, None, circle_mask_pct)
+                                          frame_path, split_y, None, circle_mask_pct,
+                                          rembg_model)
         else:
             file_results = [process_file(input_path, out_dir, mode, mask_path, size,
                                          crop_backend, crop_zoom,
                                          remove_bg_portrait, remove_bg_token,
-                                         frame_path, split_y, transform, circle_mask_pct)]
+                                         frame_path, split_y, transform, circle_mask_pct,
+                                         rembg_model)]
 
         for r in file_results:
             entry = {}
@@ -284,9 +285,6 @@ def process():
             results.append(entry)
     except Exception as exc:
         errors.append(str(exc))
-
-    if nobg_tmp_to_delete:
-        nobg_tmp_to_delete.unlink(missing_ok=True)
 
     return jsonify({"results": results, "errors": errors})
 

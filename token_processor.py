@@ -21,6 +21,8 @@ from PIL import Image
 import rembg
 from face_crop import smart_crop
 
+_rembg_sessions: dict = {}   # model_name → rembg session (cached after first load)
+
 
 # ── Config ────────────────────────────────────────────────────────────────────
 DEFAULT_SIZE  = 512
@@ -34,12 +36,16 @@ FRAMES_DIR    = _DATA_DIR / "frames"
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def remove_background(img: Image.Image) -> Image.Image:
-    """Strip background using rembg (returns RGBA). Runs once per source image."""
+def remove_background(img: Image.Image, model: str = "u2net") -> Image.Image:
+    """Strip background using rembg (returns RGBA). Sessions are cached per model."""
+    if model not in _rembg_sessions:
+        print(f"  [rembg] Loading model '{model}'…")
+        _rembg_sessions[model] = rembg.new_session(model)
+    session = _rembg_sessions[model]
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
-    out_bytes = rembg.remove(buf.read())
+    out_bytes = rembg.remove(buf.read(), session=session)
     return Image.open(io.BytesIO(out_bytes)).convert("RGBA")
 
 
@@ -197,6 +203,7 @@ def process_file(
     split_y: float = 0.5,
     transform: dict | None = None,
     circle_mask_pct: float = 1.0,
+    rembg_model: str = "u2net",
 ) -> dict:
     """
     Process one image.
@@ -234,7 +241,7 @@ def process_file(
             nobg = raw
         else:
             print("  [1/?] Removing background…")
-            nobg = remove_background(raw)
+            nobg = remove_background(raw, rembg_model)
 
         portrait_src = nobg if remove_bg_portrait else raw
         token_src    = nobg if remove_bg_token    else raw
@@ -267,7 +274,7 @@ def process_file(
             nobg = raw
         else:
             print("  [1/?] Removing background…")
-            nobg = remove_background(raw)
+            nobg = remove_background(raw, rembg_model)
         path = out_dir / f"{src.stem}.webp"
         _save(nobg, path)
         print(f"  ✓ No-BG    → {path.name}")
@@ -284,7 +291,7 @@ def process_file(
     # Run rembg once on the uncropped image (portrait always uses full frame)
     if eff_remove_portrait or eff_remove_token:
         print("  [1/?] Removing background…")
-        nobg = remove_background(raw)
+        nobg = remove_background(raw, rembg_model)
     else:
         nobg = raw  # no removal needed
 
@@ -344,6 +351,7 @@ def process_folder(
     split_y: float = 0.5,
     transform: dict | None = None,
     circle_mask_pct: float = 1.0,
+    rembg_model: str = "u2net",
 ) -> list[dict]:
     """Process every supported image in folder (non-recursive)."""
     images = sorted(f for f in folder.iterdir() if f.suffix.lower() in SUPPORTED_EXT)
@@ -357,7 +365,7 @@ def process_folder(
                                         crop_backend, crop_zoom,
                                         remove_bg_portrait, remove_bg_token,
                                         frame_path, split_y, transform,
-                                        circle_mask_pct))
+                                        circle_mask_pct, rembg_model))
         except Exception as exc:
             print(f"  ! Skipped {img_path.name}: {exc}")
     return results

@@ -78,6 +78,31 @@
     .canvas-wrap.has-image { cursor: grab; }
     .canvas-wrap.has-image:active { cursor: grabbing; }
     .canvas-wrap.drag-over { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.3); }
+    .canvas-progress {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .canvas-progress.active { opacity: 1; }
+    .canvas-progress::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -60%;
+      width: 60%;
+      height: 100%;
+      background: var(--accent);
+      animation: progress-slide 1.4s ease-in-out infinite;
+    }
+    @keyframes progress-slide {
+      0%   { left: -60%; }
+      100% { left: 100%; }
+    }
     #previewCanvas {
       display: block;
       width: 420px;
@@ -104,8 +129,68 @@
       margin-top: 0.35rem;
       opacity: 0.65;
     }
-    .preview-btns { display: flex; gap: 0.5rem; }
-    .preview-btns button { flex: 1; font-size: 0.8rem; padding: 0.5rem 0.5rem; }
+    .preview-btns { display: flex; gap: 0.5rem; align-items: stretch; }
+    .preview-btns button { font-size: 0.8rem; padding: 0.5rem 0.5rem; }
+    #btnPrepare { flex: 1; }
+    .bg-model-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.4rem;
+      cursor: pointer;
+      outline: none;
+      flex-shrink: 0;
+      max-width: 9rem;
+    }
+    .bg-model-select:focus { border-color: var(--accent); }
+    .apply-mask-btn { width: 90%; font-size: 0.65rem; padding: 0.3rem 0.5rem; margin-top: 0.2rem; min-height: 0 !important; }
+
+    /* ── BG section bordered box ── */
+    .bg-section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.6rem 0.5rem;
+      position: relative;
+      margin-top: 0.65rem;
+    }
+    .bg-section-title {
+      position: absolute;
+      top: -0.55em;
+      left: 0.6rem;
+      background: var(--surface);
+      padding: 0 0.35rem;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .model-tooltip {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0; right: 0;
+      background: #0d1b2e;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.45rem 0.6rem;
+      font-size: 0.72rem;
+      color: var(--text);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 100;
+      line-height: 1.45;
+    }
+    .model-tooltip.visible { opacity: 1; }
+    .model-tooltip strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 0.15rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
     .preview-meta {
       font-size: 0.72rem;
       color: var(--muted);
@@ -752,6 +837,7 @@
 
       <div class="canvas-wrap" id="canvasWrap">
         <canvas id="previewCanvas" width="420" height="420"></canvas>
+        <div class="canvas-progress" id="canvasProgress"></div>
         <div class="canvas-placeholder" id="canvasPlaceholder">
           <span>Select a file, drag &amp; drop here,</span>
           <span style="display:block">or paste from clipboard (Ctrl+V)</span>
@@ -760,10 +846,24 @@
 
       <div class="canvas-hint">Drag to pan &nbsp;·&nbsp; Scroll to zoom</div>
 
-      <div class="preview-btns">
-        <button id="btnPrepare" onclick="runPrepare()">Remove BG &amp; Preview</button>
-        <button id="btnMask" onclick="applyMaskToImage()" disabled>Apply Mask</button>
-        <button id="btnReset" onclick="resetView()" disabled>Reset</button>
+      <div class="bg-section" id="bgSection">
+        <span class="bg-section-title">Remove BG</span>
+        <div class="model-tooltip" id="modelTooltip">
+          <strong id="modelTooltipName"></strong>
+          <span id="modelTooltipDesc"></span>
+        </div>
+        <div class="preview-btns">
+          <select id="bgModel" class="bg-model-select">
+            <option value="u2net">Universal</option>
+            <option value="u2net_human_seg">Character</option>
+            <option value="isnet-general-use">Crisp</option>
+            <option value="birefnet-portrait">Portrait AI</option>
+            <option value="isnet-anime">Illustrated</option>
+            <option value="silueta">Quick</option>
+          </select>
+          <button id="btnPrepare" onclick="runPrepare()">Remove BG &amp; Preview</button>
+          <button id="btnReset" onclick="resetView()" disabled>Reset</button>
+        </div>
       </div>
 
       <div class="preview-meta" id="previewMeta">No image loaded</div>
@@ -835,6 +935,7 @@
               </div>
               <span class="sel-name" id="sn-mask">bottom-half</span>
             </button>
+            <button id="btnMask" class="apply-mask-btn" onclick="applyMaskToImage()" disabled>Apply Mask</button>
           </div>
 
           <div class="selector-col">
@@ -1267,12 +1368,13 @@
     btn.disabled    = true;
     btn.textContent = 'Removing BG…';
     document.getElementById('status').textContent = '';
+    document.getElementById('canvasProgress').classList.add('active');
 
     try {
       const res  = await fetch('/prepare', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ input: inputPath }),
+        body:    JSON.stringify({ input: inputPath, rembg_model: document.getElementById('bgModel').value }),
       });
       const data = await res.json();
       if (data.error) {
@@ -1314,6 +1416,7 @@
     } finally {
       btn.disabled    = false;
       btn.textContent = 'Remove BG & Preview';
+      document.getElementById('canvasProgress').classList.remove('active');
     }
   }
 
@@ -1477,6 +1580,7 @@
           frame:              SEL.frame.value,
           split_y:            parseInt(document.getElementById('splitY').value) / 100,
           circle_mask:        parseInt(document.getElementById('circleMask').value) / 100,
+          rembg_model:        document.getElementById('bgModel').value,
           transform:          transform,
         }),
       });
@@ -1785,6 +1889,7 @@
       circleMask:       document.getElementById('circleMask').value,
       outputPath:       document.getElementById('outputPath').value.trim(),
       folderPath:       document.getElementById('folderPath').value.trim(),
+      bgModel:          document.getElementById('bgModel').value,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   }
@@ -1821,6 +1926,8 @@
       el.value = s.circleMask;
       document.getElementById('circleMaskLabel').textContent = s.circleMask + '%';
     }
+    if (s.bgModel)
+      document.getElementById('bgModel').value = s.bgModel;
     if (s.outputPath)
       document.getElementById('outputPath').value = s.outputPath;
     if (s.folderPath) {
@@ -1828,6 +1935,30 @@
       updateSectionStates();
     }
   }
+
+  // ── Model tooltip ──────────────────────────────────────────────────────────
+  const MODEL_INFO = {
+    'u2net':             { name: 'Universal',   desc: 'General-purpose model. Good balance of quality and speed for most subjects.' },
+    'u2net_human_seg':   { name: 'Character',   desc: 'Optimized for human figures and RPG character art. Great for portrait tokens.' },
+    'isnet-general-use': { name: 'Crisp',       desc: 'High-detail edges. Best for complex hair, fur, or fine transparent details.' },
+    'birefnet-portrait': { name: 'Portrait AI', desc: 'Portrait-specialized deep model. Strongest results for face and upper body.' },
+    'isnet-anime':       { name: 'Illustrated', desc: 'Tuned for anime, illustrations, and hand-drawn or painted art styles.' },
+    'silueta':           { name: 'Quick',       desc: 'Lightest and fastest model. Use for quick previews or simple flat subjects.' },
+  };
+  function updateModelTooltip() {
+    const info = MODEL_INFO[document.getElementById('bgModel').value];
+    if (!info) return;
+    document.getElementById('modelTooltipName').textContent = info.name;
+    document.getElementById('modelTooltipDesc').textContent = info.desc;
+  }
+  document.getElementById('bgModel').addEventListener('mouseenter', () => {
+    updateModelTooltip();
+    document.getElementById('modelTooltip').classList.add('visible');
+  });
+  document.getElementById('bgSection').addEventListener('mouseleave', () => {
+    document.getElementById('modelTooltip').classList.remove('visible');
+  });
+  document.getElementById('bgModel').addEventListener('change', updateModelTooltip);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function escHtml(s) {
