@@ -14,12 +14,22 @@ block_cipher = None
 
 # Packages that call importlib.metadata.version() on themselves at import time
 # must have their dist-info metadata bundled explicitly.
+# Use a safe wrapper because onnxruntime may be installed under different dist-info
+# names depending on the environment (e.g. onnxruntime vs onnxruntime-cpu).
+def _safe_meta(pkg):
+    try:
+        return copy_metadata(pkg)
+    except Exception:
+        return []
+
 _metadata = (
-    copy_metadata("pymatting")
-    + copy_metadata("rembg")
-    + copy_metadata("onnxruntime")
-    + copy_metadata("Pillow")
-    + copy_metadata("numpy")
+    _safe_meta("pymatting")
+    + _safe_meta("rembg")
+    + _safe_meta("onnxruntime")
+    + _safe_meta("onnxruntime-cpu")
+    + _safe_meta("onnxruntime-gpu")
+    + _safe_meta("Pillow")
+    + _safe_meta("numpy")
 )
 
 a = Analysis(
