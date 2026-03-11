@@ -6,14 +6,41 @@ Turn portrait images into Foundry VTT-ready tokens — fully offline, no subscri
 
 ---
 
-## Quickstart — .exe
+## Quickstart — pre-built binary
 
-1. Download the latest release: **[Tokenificator-v1.0-windows.zip](https://github.com/mordachai/tokenificator/releases/latest)**
+Download the latest release for your platform from the **[Releases page](https://github.com/mordachai/tokenificator/releases/latest)**.
+
+### Windows
+
+1. Download `Tokenificator-...-windows.zip`
 2. Unzip anywhere
 3. Double-click `Tokenificator.exe`
 4. The browser opens automatically at `http://localhost:5000`
 
-Custom masks and frames go in the `masks/` and `frames/` folders next to the exe — they appear in the UI instantly.
+### macOS
+
+1. Download `Tokenificator-...-macos.zip`
+2. Unzip anywhere
+3. **First launch only:** right-click `Tokenificator` → **Open** → confirm in the Gatekeeper dialog (unsigned app warning)
+4. After that, double-click to launch normally
+5. The browser opens automatically at `http://localhost:5000`
+
+### Linux
+
+1. Download `Tokenificator-...-linux.zip`
+2. Unzip anywhere
+3. Open a terminal in the folder and run:
+
+   ```bash
+   chmod +x Tokenificator
+   ./Tokenificator
+   ```
+
+4. Open `http://localhost:5000` in your browser
+
+---
+
+Custom masks and frames go in the `masks/` and `frames/` folders next to the binary — they appear in the UI instantly.
 
 ---
 
