@@ -49,17 +49,27 @@ Custom masks and frames go in the `masks/` and `frames/` folders next to the bin
 ```bash
 git clone https://github.com/mordachai/tokenificator.git
 cd tokenificator
-pip install rembg pillow flask
+pip install "rembg[cpu]" pillow flask
 python app.py
 ```
 
 Open `http://localhost:5000`.
 
-Optional face-detection backend:
+### Optional extras
+
+**GPU background removal** (NVIDIA/CUDA only — faster for large batches):
 
 ```bash
-pip install insightface  # AI face detection
+pip install "rembg[gpu]"   # replaces rembg[cpu]
 ```
+
+**AI face detection** (InsightFace — improves the crop/zoom feature):
+
+```bash
+pip install insightface
+```
+
+> InsightFace also benefits from a GPU. If you installed `rembg[gpu]`, onnxruntime-gpu is already present and InsightFace will use it automatically.
 
 ---
 
