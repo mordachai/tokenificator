@@ -192,6 +192,23 @@ def open_file():
     return jsonify({"path": str(Path(chosen))})
 
 
+@app.post("/upload-temp")
+def upload_temp():
+    """Accept an image blob upload, save to TMP_DIR, return path + preview URL."""
+    f = request.files.get("file")
+    if not f:
+        return jsonify({"error": "No file"}), 400
+    orig_name = f.filename or "upload"
+    stem = Path(orig_name).stem or "upload"
+    ext  = Path(orig_name).suffix.lower() or ".png"
+    if ext not in SUPPORTED_EXT:
+        ext = ".png"
+    tmp_name = f"upload_{stem}_{uuid.uuid4().hex[:8]}{ext}"
+    tmp_path = TMP_DIR / tmp_name
+    f.save(str(tmp_path))
+    return jsonify({"path": str(tmp_path), "url": f"/tmp/{tmp_name}", "name": tmp_name})
+
+
 @app.post("/process")
 def process():
     """
@@ -219,7 +236,7 @@ def process():
         crop_backend = "none"
     if crop_zoom not in (1, 3, 5):
         crop_zoom = 1
-    split_y = max(0.1, min(0.9, split_y))
+    split_y = max(0.0, min(1.0, split_y))
 
     out_dir   = Path(output_str) if output_str else None
     mask_path = MASKS_DIR / mask_name if mask_name else None
