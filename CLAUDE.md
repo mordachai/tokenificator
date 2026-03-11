@@ -12,8 +12,7 @@ RPG Token Processor — a Python CLI tool that converts portrait images into Fou
 # Install dependencies (one-time)
 pip install rembg pillow flask
 
-# Optional face-detection backends
-pip install mediapipe        # for --crop mediapipe
+# Optional face-detection backend
 pip install insightface      # for --crop insightface
 
 # Web UI (recommended)
@@ -21,13 +20,13 @@ python app.py            # → open http://localhost:5000
 
 # CLI — single file
 python token_processor.py portrait.jpg
-python token_processor.py portrait.jpg --output-dir ./tokens --mode both --size 512 --crop mediapipe --zoom 3
+python token_processor.py portrait.jpg --output-dir ./tokens --mode both --size 512 --crop insightface --zoom 3
 
 # CLI — whole folder
 python token_processor.py --folder ./portraits --output-dir ./tokens
 ```
 
-> First run downloads the rembg AI segmentation model (~100 MB, cached locally). MediaPipe also auto-downloads its model (~0.8 MB) on first use to `models/`.
+> First run downloads the rembg AI segmentation model (~100 MB, cached locally).
 
 ## File Structure
 
@@ -82,7 +81,6 @@ MASK_FILE     = masks/bottom-half.png   # default; runtime-selectable via --mask
 
 - `"none"` — passthrough
 - `"top"` — simple top-square crop, no AI
-- `"mediapipe"` — MediaPipe FaceDetector; auto-downloads TFLite model to `models/`
 - `"insightface"` — InsightFace RetinaFace (`buffalo_sc`, CPU); singleton loaded once per process
 
 AI backends fall back to `top` crop if no face is detected. `ImportError` (backend not installed) is re-raised to surface to the caller.

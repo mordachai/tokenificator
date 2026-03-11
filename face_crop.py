@@ -4,7 +4,6 @@ face_crop.py — Face-aware smart cropping for the Tokenificator pipeline.
 Crop backends:
   "none"        — passthrough, no crop
   "top"         — simple top-square crop (no AI)
-  "mediapipe"   — MediaPipe FaceDetector  (pip install mediapipe)
   "insightface" — InsightFace RetinaFace  (pip install insightface)
 
 Zoom levels:
@@ -13,8 +12,6 @@ Zoom levels:
   5 — strong: bust / upper chest (face bbox × ~3 total)
 """
 
-import urllib.request
-from pathlib import Path
 from PIL import Image
 
 # padding_factor = how many face-heights of context surround each side of the face.
@@ -29,21 +26,6 @@ _PADDING: dict[int, float] = {
 
 # InsightFace model loaded once per process (expensive)
 _insightface_app = None
-
-# MediaPipe Tasks model (auto-downloaded on first use, ~0.8 MB)
-_MP_MODEL_PATH = Path(__file__).parent / "models" / "blaze_face_short_range.tflite"
-_MP_MODEL_URL  = (
-    "https://storage.googleapis.com/mediapipe-models/"
-    "face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite"
-)
-
-
-def _ensure_mp_model() -> str:
-    if not _MP_MODEL_PATH.exists():
-        _MP_MODEL_PATH.parent.mkdir(exist_ok=True)
-        print("  Downloading MediaPipe face model (~0.8 MB)…")
-        urllib.request.urlretrieve(_MP_MODEL_URL, _MP_MODEL_PATH)
-    return str(_MP_MODEL_PATH)
 
 
 def _bbox_to_crop(
@@ -78,37 +60,6 @@ def _crop_top(img: Image.Image, zoom: int) -> Image.Image:
     fracs = {1: 0.8, 3: 0.5, 5: 0.3}
     height = int(H * fracs[zoom])
     return img.crop((0, 0, W, height))
-
-
-def _crop_mediapipe(img: Image.Image, zoom: int) -> Image.Image:
-    """Detect face with MediaPipe Tasks API (0.10.x+) and crop."""
-    try:
-        import mediapipe as mp
-        from mediapipe.tasks import python as mp_python
-        from mediapipe.tasks.python import vision as mp_vision
-    except ImportError:
-        raise ImportError("MediaPipe not installed. Run: pip install mediapipe")
-
-    import numpy as np
-
-    model_path   = _ensure_mp_model()
-    base_options = mp_python.BaseOptions(model_asset_path=model_path)
-    options      = mp_vision.FaceDetectorOptions(base_options=base_options)
-
-    rgb      = img.convert("RGB")
-    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=np.array(rgb))
-
-    with mp_vision.FaceDetector.create_from_options(options) as detector:
-        result = detector.detect(mp_image)
-
-    if not result.detections:
-        raise RuntimeError("No face detected (MediaPipe)")
-
-    det  = max(result.detections, key=lambda d: d.bounding_box.width * d.bounding_box.height)
-    bb   = det.bounding_box
-    fx, fy, fw, fh = bb.origin_x, bb.origin_y, bb.width, bb.height
-
-    return _bbox_to_crop(img, fx, fy, fw, fh, zoom)
 
 
 def _crop_insightface(img: Image.Image, zoom: int) -> Image.Image:
@@ -151,8 +102,8 @@ def smart_crop(
     """
     Crop img using the selected backend and zoom level.
 
-    backend: "none" | "top" | "mediapipe" | "insightface"
-    zoom:    1 (loose) | 2 (medium) | 3 (tight)
+    backend: "none" | "top" | "insightface"
+    zoom:    1 (loose) | 3 (medium) | 5 (tight)
 
     AI backends fall back to top-crop if no face is detected.
     ImportError (backend not installed) is re-raised to surface to the caller.
@@ -163,8 +114,6 @@ def smart_crop(
         return _crop_top(img, zoom)
 
     try:
-        if backend == "mediapipe":
-            return _crop_mediapipe(img, zoom)
         if backend == "insightface":
             return _crop_insightface(img, zoom)
         raise ValueError(f"Unknown crop backend: {backend!r}")

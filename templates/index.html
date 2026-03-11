@@ -180,31 +180,46 @@
     }
     .main-selectors {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
+      grid-template-columns: repeat(2, 150px);
+      gap: 0.4rem;
+      flex-shrink: 0;
     }
-    .auto-section {
+    .batch-section {
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0.4rem 0.6rem 0.6rem;
+      padding: 0.6rem 0.75rem 0.75rem;
       margin: 0;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: opacity 0.15s;
     }
-    .auto-section legend {
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 0 0.4rem;
+    .batch-title {
+      font-size: 1.6rem;
+      letter-spacing: 0.05em;
+      line-height: 1.1;
+      margin-bottom: 0.1rem;
     }
+    .batch-title span { color: var(--accent); }
+    .batch-folder-field { margin: 0; }
+    .batch-folder-field label { margin-bottom: 0.3rem; }
     .auto-selectors {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 0.5rem;
-      margin-bottom: 0.5rem;
     }
-    .auto-section:disabled, .auto-section[disabled] {
+    .batch-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 0.1rem;
+    }
+    .batch-section.disabled {
+      opacity: 0.38;
+      pointer-events: none;
+    }
+    #fileSection.disabled {
       opacity: 0.38;
       pointer-events: none;
     }
@@ -415,7 +430,7 @@
     }
 
     /* ── Split-Y row ── */
-    .split-row { display: none; margin-bottom: 0.9rem; }
+    .split-row { display: none; }
     .split-row.visible { display: block; }
     .split-label-row {
       display: flex;
@@ -569,7 +584,7 @@
     }
     .result-size {
       font-size: 0.68rem;
-      color: var(--border);
+      color: var(--muted);
       margin-bottom: 0.4rem;
       font-family: monospace;
     }
@@ -751,18 +766,38 @@
       </div>
 
       <div class="preview-meta" id="previewMeta">No image loaded</div>
+
+      <div class="split-row visible">
+        <div class="split-label-row">
+          <span>Circle mask <span class="hint-inline">· circular crop over token mask, 100% = off</span></span>
+          <span id="circleMaskLabel">100%</span>
+        </div>
+        <input type="range" id="circleMask" min="10" max="100" value="100" step="1"
+               oninput="document.getElementById('circleMaskLabel').textContent=this.value+'%'; onOverlaySettingChange()">
+      </div>
+
+      <div class="split-row" id="splitRow">
+        <div class="split-label-row">
+          <span>Overflow line <span class="hint-inline">· pixels above pop over the frame</span></span>
+          <span id="splitLabel">50%</span>
+        </div>
+        <input type="range" id="splitY" min="10" max="90" value="50" step="1"
+               oninput="document.getElementById('splitLabel').textContent=this.value+'%'; onOverlaySettingChange()">
+      </div>
     </div>
 
     <!-- ── Right: controls ── -->
     <div class="controls-panel">
 
-      <div class="field">
-        <label>Input — file or folder <span class="hint-inline">· PNG, JPG, WebP, and more</span></label>
-        <div class="input-row">
-          <input type="text" id="inputPath" placeholder="C:\portraits\Wizard.png"
-                 oninput="onInputChange()" />
-          <button onclick="browse('file')">File</button>
-          <button onclick="browse('folder')">Folder</button>
+      <div id="fileSection">
+        <div class="field">
+          <label>Input — file <span class="hint-inline">· PNG, JPG, WebP, and more</span></label>
+          <div class="input-row">
+            <input type="text" id="inputPath" placeholder="C:\portraits\Wizard.png"
+                   oninput="onInputChange()" />
+            <button onclick="browse('file')">File</button>
+            <button onclick="clearFileInput()" id="btnClearFile" title="Clear">✕</button>
+          </div>
         </div>
       </div>
 
@@ -832,8 +867,18 @@
 
         </div><!-- /main-selectors -->
 
-        <fieldset class="auto-section" id="autoSection">
-          <legend>Automatic <span class="hint-inline">· Top = no AI &nbsp;|&nbsp; MediaPipe / InsightFace = AI &nbsp;|&nbsp; Zoom ignored in manual mode</span></legend>
+        <div class="batch-section disabled" id="batchSection">
+          <div class="batch-title">Batch<span> Mode</span></div>
+
+          <div class="batch-folder-field">
+            <label>Folder</label>
+            <div class="input-row">
+              <input type="text" id="folderPath" placeholder="C:\portraits\"
+                     oninput="onFolderChange()" />
+              <button onclick="browseBatchFolder()">Browse</button>
+            </div>
+          </div>
+
           <div class="auto-selectors">
 
             <div class="selector-col">
@@ -858,27 +903,11 @@
             </div>
 
           </div><!-- /auto-selectors -->
-        </fieldset>
+
+          <p class="batch-hint">Top = no AI &nbsp;·&nbsp; InsightFace = AI face detection<br>Zoom ignored in single-file mode</p>
+        </div><!-- /batch-section -->
 
       </div><!-- /selector-layout -->
-
-      <div class="split-row" id="splitRow">
-        <div class="split-label-row">
-          <span>Overflow line <span class="hint-inline">· pixels above pop over the frame</span></span>
-          <span id="splitLabel">50%</span>
-        </div>
-        <input type="range" id="splitY" min="10" max="90" value="50" step="1"
-               oninput="document.getElementById('splitLabel').textContent=this.value+'%'; onOverlaySettingChange()">
-      </div>
-
-      <div class="split-row visible">
-        <div class="split-label-row">
-          <span>Circle mask <span class="hint-inline">· circular crop over token mask, 100% = off</span></span>
-          <span id="circleMaskLabel">100%</span>
-        </div>
-        <input type="range" id="circleMask" min="10" max="100" value="100" step="1"
-               oninput="document.getElementById('circleMaskLabel').textContent=this.value+'%'; onOverlaySettingChange()">
-      </div>
 
       <div class="toggle-row">
         <label class="toggle-label">
@@ -1008,7 +1037,6 @@
       options: [
         { value: 'none',        label: 'Off',         display: 'OFF', hint: 'No cropping — use full image as-is' },
         { value: 'top',         label: 'Top Crop',    display: 'TOP', hint: 'Simple crop from top, no AI required' },
-        { value: 'mediapipe',   label: 'MediaPipe',   display: 'MP',  hint: 'Google face detection — fast, offline' },
         { value: 'insightface', label: 'InsightFace', display: 'IF',  hint: 'Deep learning face detection — accurate' },
       ],
     },
@@ -1197,10 +1225,24 @@
     wrap.addEventListener('touchend', () => { lastTouch = null; });
   }
 
-  function updateAutoSection() {
-    const inputPath = document.getElementById('inputPath').value.trim();
-    const isManual  = !!(preview.preparedInput && preview.preparedInput === inputPath && preview.preparedPath);
-    document.getElementById('autoSection').disabled = isManual;
+  function updateSectionStates() {
+    const hasFile   = !!document.getElementById('inputPath').value.trim();
+    const hasFolder = !!document.getElementById('folderPath').value.trim();
+    document.getElementById('batchSection').classList.toggle('disabled', hasFile);
+    document.getElementById('fileSection').classList.toggle('disabled', hasFolder);
+  }
+
+  function onFolderChange() {
+    updateSectionStates();
+  }
+
+  async function browseBatchFolder() {
+    const res  = await fetch('/open-folder');
+    const data = await res.json();
+    if (!data.path) return;
+    document.getElementById('folderPath').value = data.path;
+    onFolderChange();
+    saveSettings();
   }
 
   function updatePreviewMeta() {
@@ -1264,7 +1306,7 @@
       document.getElementById('btnReset').disabled = false;
       document.getElementById('btnMask').disabled  = false;
       updatePreviewMeta();
-      updateAutoSection();
+      updateSectionStates();
 
     } catch (err) {
       document.getElementById('status').textContent = `Prepare failed: ${err.message}`;
@@ -1287,7 +1329,7 @@
     preview.panY          = 0;
     preview.userScale     = 1.0;
     loadMaskCanvas(SEL.mask.value);
-    updateAutoSection();
+    updateSectionStates();
     const meta = document.getElementById('previewMeta');
     meta.textContent = 'Raw preview — click Remove BG & Preview to process';
     meta.className   = 'preview-meta';
@@ -1332,7 +1374,7 @@
     if (current !== preview.preparedInput) {
       preview.preparedInput = null;
       preview.preparedPath  = null;
-      updateAutoSection();
+      updateSectionStates();
     }
 
     // Load raw preview for single image files
@@ -1374,9 +1416,26 @@
     }
   }
 
+  function clearFileInput() {
+    document.getElementById('inputPath').value = '';
+    preview.preparedPath  = null;
+    preview.preparedInput = null;
+    preview.nobgImg       = null;
+    preview.naturalW      = preview.naturalH = 0;
+    document.getElementById('canvasPlaceholder').classList.remove('hidden');
+    document.getElementById('canvasWrap').classList.remove('has-image');
+    document.getElementById('btnReset').disabled = true;
+    document.getElementById('btnMask').disabled  = true;
+    renderCanvas();
+    updatePreviewMeta();
+    updateSectionStates();
+  }
+
   // ── Generate ───────────────────────────────────────────────────────────────
   async function runProcess() {
-    const inputPath  = document.getElementById('inputPath').value.trim();
+    const fileInput  = document.getElementById('inputPath').value.trim();
+    const folderInput = document.getElementById('folderPath').value.trim();
+    const inputPath  = folderInput || fileInput;
     const outputPath = document.getElementById('outputPath').value.trim();
     const btn        = document.getElementById('btnProcess');
     const statusEl   = document.getElementById('status');
@@ -1387,8 +1446,8 @@
     btn.disabled       = true;
     resultsEl.innerHTML = '<div class="results-empty">Generating…</div>';
 
-    // Use manual transform whenever a single image file is previewed
-    const isManual = !!(preview.nobgImg && SUPPORTED_IMG_EXT.test(inputPath));
+    // Use manual transform only for single-file mode
+    const isManual = !!(preview.nobgImg && SUPPORTED_IMG_EXT.test(fileInput) && !folderInput);
     const transform = isManual ? {
       pan_x:      preview.panX / CANVAS_PX,
       pan_y:      preview.panY / CANVAS_PX,
@@ -1724,6 +1783,7 @@
       splitY:           document.getElementById('splitY').value,
       circleMask:       document.getElementById('circleMask').value,
       outputPath:       document.getElementById('outputPath').value.trim(),
+      folderPath:       document.getElementById('folderPath').value.trim(),
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   }
@@ -1762,6 +1822,10 @@
     }
     if (s.outputPath)
       document.getElementById('outputPath').value = s.outputPath;
+    if (s.folderPath) {
+      document.getElementById('folderPath').value = s.folderPath;
+      updateSectionStates();
+    }
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -1782,6 +1846,8 @@
   document.getElementById('splitY').addEventListener('input', saveSettings);
   document.getElementById('circleMask').addEventListener('input', saveSettings);
   document.getElementById('outputPath').addEventListener('input', saveSettings);
+  document.getElementById('folderPath').addEventListener('input', saveSettings);
+  updateSectionStates();
 </script>
 </body>
 </html>

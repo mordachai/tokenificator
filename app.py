@@ -31,6 +31,8 @@ MODE_IMAGES_DIR.mkdir(exist_ok=True)
 ZOOM_IMAGES_DIR.mkdir(exist_ok=True)
 FRAMES_DIR.mkdir(exist_ok=True)
 TMP_DIR.mkdir(exist_ok=True)
+for _f in TMP_DIR.iterdir():
+    _f.unlink(missing_ok=True)
 
 
 @app.get("/")
@@ -213,7 +215,7 @@ def process():
 
     if size not in VALID_SIZES:
         size = DEFAULT_SIZE
-    if crop_backend not in ("none", "top", "mediapipe", "insightface"):
+    if crop_backend not in ("none", "top", "insightface"):
         crop_backend = "none"
     if crop_zoom not in (1, 3, 5):
         crop_zoom = 1
@@ -229,10 +231,13 @@ def process():
 
     # Validate transform if provided — only discard if a nobg_path was given but the file is gone (stale).
     # An empty nobg_path is valid: the Python pipeline will run rembg inline.
+    nobg_tmp_to_delete = None
     if transform:
         nobg_path_val = (transform.get("nobg_path") or "").strip()
         if nobg_path_val and not Path(nobg_path_val).exists():
             transform = None  # stale prep file; fall back to auto
+        elif nobg_path_val:
+            nobg_tmp_to_delete = Path(nobg_path_val)
 
     results = []
     errors  = []
@@ -262,6 +267,9 @@ def process():
             results.append(entry)
     except Exception as exc:
         errors.append(str(exc))
+
+    if nobg_tmp_to_delete:
+        nobg_tmp_to_delete.unlink(missing_ok=True)
 
     return jsonify({"results": results, "errors": errors})
 

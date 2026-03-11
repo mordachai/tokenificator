@@ -28,11 +28,10 @@ python app.py
 
 Open `http://localhost:5000`.
 
-Optional face-detection backends:
+Optional face-detection backend:
 
 ```bash
-pip install mediapipe    # lightweight, auto-downloads model
-pip install insightface  # more accurate, heavier
+pip install insightface  # AI face detection
 ```
 
 ---
@@ -74,7 +73,7 @@ The UI is a single page with three columns:
 - **Mask** — shape applied to the token
 - **Frame** — decorative ring composited over the token; browse any folder for frames
 - **Size** — output canvas in pixels
-- **Crop** — optional AI face-detection crop (None / Top / MediaPipe / InsightFace)
+- **Crop** — optional AI face-detection crop (None / Top / InsightFace)
 - **Zoom** — crop tightness: Wide / Medium / Tight
 - **Circle mask** — additional circular crop applied on top of the token mask (10–100%, 100% = off)
 - **Remove BG** — independent toggles for portrait and token
@@ -113,7 +112,7 @@ python token_processor.py portrait.jpg \
   --output-dir ./tokens \
   --mode both \
   --size 512 \
-  --crop mediapipe \
+  --crop insightface \
   --zoom 3 \
   --frame frames/gold-ring.png
 
@@ -125,7 +124,7 @@ python token_processor.py --folder ./portraits --output-dir ./tokens
 | --- | --- | --- |
 | `--mode` | `both` | `both` `portrait` `token` `nobg` |
 | `--size` | `512` | `256` `512` `1024` `2048` |
-| `--crop` | `none` | `none` `top` `mediapipe` `insightface` |
+| `--crop` | `none` | `none` `top` `insightface` |
 | `--zoom` | `1` | `1` `3` `5` |
 | `--frame` | — | path to an RGBA PNG |
 | `--split-y` | `0.5` | 0.0 – 1.0 (frame overflow point) |

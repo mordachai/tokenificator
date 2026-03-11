@@ -379,7 +379,7 @@ if __name__ == "__main__":
                         type=int, choices=list(VALID_SIZES), default=DEFAULT_SIZE,
                         help=f"Output canvas size in px (default: {DEFAULT_SIZE})")
     parser.add_argument("--crop", "-c",
-                        choices=["none", "top", "mediapipe", "insightface"],
+                        choices=["none", "top", "insightface"],
                         default="none",
                         help="Face crop backend (default: none)")
     parser.add_argument("--zoom", "-z",

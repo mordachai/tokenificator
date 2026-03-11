@@ -1,0 +1,59 @@
+name: Build & Release
+
+# Triggered by pushing a version tag, e.g.: git tag v1.1 && git push origin v1.1
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # needed to create GitHub Releases and upload assets
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: windows
+          - os: macos-latest
+            label: macos
+          - os: ubuntu-latest
+            label: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # tkinter is not included in the default Python on Ubuntu
+      - name: Install system deps (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y python3-tk
+
+      - name: Install Python dependencies
+        run: pip install rembg pillow flask pyinstaller
+
+      - name: Build with PyInstaller
+        run: pyinstaller tokenificator.spec
+
+      # ── Package ────────────────────────────────────────────────────────────
+      - name: Zip output (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: Compress-Archive -Path dist\Tokenificator\* -DestinationPath Tokenificator-${{ github.ref_name }}-windows.zip
+
+      - name: Zip output (macOS / Linux)
+        if: matrix.os != 'windows-latest'
+        run: cd dist && zip -r ../Tokenificator-${{ github.ref_name }}-${{ matrix.label }}.zip Tokenificator/
+
+      # ── Upload to GitHub Release (creates it if needed) ────────────────────
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Tokenificator-${{ github.ref_name }}-${{ matrix.label }}.zip
