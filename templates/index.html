@@ -448,7 +448,7 @@
       cursor: pointer;
     }
     .picker-close:hover { color: var(--text); background: none; }
-    .picker-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .picker-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; max-height: 420px; overflow-y: auto; }
     .popt {
       display: flex;
       flex-direction: column;
@@ -1633,10 +1633,11 @@
       : '';
     let html = `<div class="results-header"><h2>Results</h2>${dlAllBtn}</div>`;
 
+    const cacheBust = Date.now();
     for (const r of results) {
       const rows = ['portrait', 'token', 'nobg'].filter(k => r[k]).map(k => {
         const name = r[k].split(/[\\/]/).pop();
-        const url  = '/serve?path=' + encodeURIComponent(r[k]);
+        const url  = '/serve?path=' + encodeURIComponent(r[k]) + '&t=' + cacheBust;
         return `
           <div class="result-row">
             <img class="result-thumb" src="${url}"
