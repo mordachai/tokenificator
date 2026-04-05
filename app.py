@@ -11,8 +11,8 @@ import zipfile
 from pathlib import Path
 from PIL import Image
 from flask import Flask, jsonify, send_from_directory, send_file, request
-import tkinter
-import tkinter.filedialog
+import threading as _threading
+_dialog_lock = _threading.Lock()
 
 from token_processor import (
     process_file, process_folder,
@@ -163,34 +163,61 @@ def prepare():
     })
 
 
+def _file_dialog(title, mode):
+    """Open a file/folder picker. Uses GTK FileChooserNative (portal-aware) when
+    available (Flatpak and most Linux desktops), falls back to tkinter.
+    mode: 'folder' | 'file'
+    """
+    with _dialog_lock:
+        try:
+            import gi
+            gi.require_version("Gtk", "3.0")
+            from gi.repository import Gtk
+            action = (Gtk.FileChooserAction.SELECT_FOLDER
+                      if mode == "folder" else Gtk.FileChooserAction.OPEN)
+            native = Gtk.FileChooserNative.new(title, None, action, "_Open", "_Cancel")
+            if mode == "file":
+                filt = Gtk.FileFilter()
+                filt.set_name("Images")
+                for ext in SUPPORTED_EXT:
+                    filt.add_pattern(f"*{ext}")
+                native.add_filter(filt)
+            response = native.run()
+            chosen = native.get_filename() if response == Gtk.ResponseType.ACCEPT else None
+            native = None
+            return chosen
+        except Exception:
+            pass
+        # Fallback: tkinter (dev / non-GTK environments)
+        import tkinter
+        import tkinter.filedialog
+        root = tkinter.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        if mode == "folder":
+            chosen = tkinter.filedialog.askdirectory(title=title)
+        else:
+            exts = " ".join(f"*{e}" for e in SUPPORTED_EXT)
+            chosen = tkinter.filedialog.askopenfilename(
+                title=title,
+                filetypes=[("Images", exts), ("All files", "*.*")],
+            )
+        root.destroy()
+        return chosen or None
+
+
 @app.get("/open-folder")
 def open_folder():
     """Open a native OS folder-picker dialog and return the chosen path."""
-    root = tkinter.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    chosen = tkinter.filedialog.askdirectory(title="Select folder")
-    root.destroy()
-    if not chosen:
-        return jsonify({"path": None})
-    return jsonify({"path": str(Path(chosen))})
+    chosen = _file_dialog("Select folder", "folder")
+    return jsonify({"path": str(Path(chosen)) if chosen else None})
 
 
 @app.get("/open-file")
 def open_file():
     """Open a native OS file-picker dialog and return the chosen path."""
-    exts = " ".join(f"*{e}" for e in SUPPORTED_EXT)
-    root = tkinter.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    chosen = tkinter.filedialog.askopenfilename(
-        title="Select image",
-        filetypes=[("Images", exts), ("All files", "*.*")],
-    )
-    root.destroy()
-    if not chosen:
-        return jsonify({"path": None})
-    return jsonify({"path": str(Path(chosen))})
+    chosen = _file_dialog("Select image", "file")
+    return jsonify({"path": str(Path(chosen)) if chosen else None})
 
 
 @app.post("/upload-temp")

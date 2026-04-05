@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Tokenificator
+Comment=Convert portrait images to Foundry VTT tokens
+Exec=tokenificator
+Icon=io.github.mordachai.Tokenificator
+Terminal=false
+Type=Application
+Categories=Graphics;

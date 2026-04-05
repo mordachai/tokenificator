@@ -57,3 +57,63 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: Tokenificator-${{ github.ref_name }}-${{ matrix.label }}.zip
+
+  flatpak:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Pre-download pip wheels outside the flatpak-builder sandbox (no network inside)
+      - name: Cache pip wheels
+        uses: actions/cache@v4
+        with:
+          path: pip-wheels
+          key: flatpak-pip-${{ hashFiles('requirements-flatpak.txt') }}
+
+      - name: Download pip wheels
+        run: pip download --prefer-binary -d pip-wheels/ -r requirements-flatpak.txt
+
+      - name: Install flatpak and flatpak-builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Cache Flatpak runtimes
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/flatpak
+          key: flatpak-gnome-46-${{ runner.arch }}
+
+      - name: Install GNOME runtime and SDK
+        run: |
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user --noninteractive -y flathub \
+            org.gnome.Platform//46 org.gnome.Sdk//46
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder \
+            --user \
+            --force-clean \
+            --repo=flatpak-repo \
+            flatpak-build \
+            io.github.mordachai.Tokenificator.yml
+
+      - name: Create Flatpak bundle
+        run: |
+          flatpak build-bundle \
+            --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
+            flatpak-repo \
+            Tokenificator-${{ github.ref_name }}-linux.flatpak \
+            io.github.mordachai.Tokenificator
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Tokenificator-${{ github.ref_name }}-linux.flatpak

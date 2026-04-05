@@ -1,0 +1,6 @@
+# Python dependencies for the Flatpak build.
+# Run generate step in CI (or locally via build-flatpak.sh) to pre-download
+# these wheels into pip-wheels/ before invoking flatpak-builder.
+rembg[cpu]
+pillow
+flask

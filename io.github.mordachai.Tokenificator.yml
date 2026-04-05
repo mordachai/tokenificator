@@ -1,0 +1,40 @@
+app-id: io.github.mordachai.Tokenificator
+runtime: org.gnome.Platform
+runtime-version: '46'
+sdk: org.gnome.Sdk
+command: tokenificator
+
+finish-args:
+  - --share=network          # Flask server + rembg model downloads
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc              # X11 shared memory
+  - --filesystem=home        # read input images / write output tokens
+  - --talk-name=org.freedesktop.portal.FileChooser  # GTK FileChooserNative portal
+
+modules:
+  - name: tokenificator
+    buildsystem: simple
+    build-commands:
+      # Install Python dependencies from pre-downloaded wheels (no network needed).
+      # Wheels are populated by `pip download -r requirements-flatpak.txt -d pip-wheels/`
+      # before invoking flatpak-builder (see build-flatpak.sh / release.yml).
+      - pip3 install --prefix=/app --no-index --find-links ./pip-wheels "rembg[cpu]" pillow flask
+
+      # Install app sources
+      - install -d /app/share/tokenificator
+      - cp app.py main.py token_processor.py face_crop.py _paths.py /app/share/tokenificator/
+      - cp -r templates masks /app/share/tokenificator/
+      - for d in frames mode_images zoom_images; do
+          if [ -d "$d" ]; then cp -r "$d" /app/share/tokenificator/;
+          else mkdir -p /app/share/tokenificator/"$d"; fi;
+        done
+
+      # Launcher and desktop integration
+      - install -Dm755 tokenificator.sh /app/bin/tokenificator
+      - install -Dm644 io.github.mordachai.Tokenificator.desktop
+          /app/share/applications/io.github.mordachai.Tokenificator.desktop
+
+    sources:
+      - type: dir
+        path: .

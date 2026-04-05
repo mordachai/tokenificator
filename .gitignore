@@ -20,8 +20,12 @@ tmp/
 *.webp
 !zoom_images/*.webp
 
-# Release zips (upload to GitHub Releases, don't commit)
+# Release artifacts (upload to GitHub Releases, don't commit)
 *.zip
+*.flatpak
+
+# Pre-downloaded pip wheels for Flatpak build (generated, not committed)
+pip-wheels/
 
 # OS
 .DS_Store

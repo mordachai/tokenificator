@@ -4,6 +4,7 @@ Tokenificator — launcher
 Bootstraps writable asset dirs, then starts Flask and opens the browser.
 """
 
+import os
 import sys
 import shutil
 import threading
@@ -12,18 +13,17 @@ import webbrowser
 from pathlib import Path
 
 
-# ── Bootstrap writable dirs next to the .exe on first run ─────────────────────
-# masks/ and frames/ are bundled in the exe but users may add their own files,
-# so we copy them out to the exe's directory once and serve from there.
+# ── Bootstrap writable dirs on first run ──────────────────────────────────────
+# masks/ and frames/ are bundled in the exe / installed to /app, but users may
+# add their own files, so we copy them out to the writable DATA_DIR once.
 def _bootstrap():
-    if not getattr(sys, "frozen", False):
+    if not getattr(sys, "frozen", False) and not os.environ.get("FLATPAK_ID"):
         return
-    bundle = Path(sys._MEIPASS)
-    data   = Path(sys.executable).parent
+    from _paths import BUNDLE_DIR, DATA_DIR
     for name in ("masks", "frames", "mode_images", "zoom_images"):
-        dst = data / name
+        dst = DATA_DIR / name
         if not dst.exists():
-            src = bundle / name
+            src = BUNDLE_DIR / name
             if src.exists():
                 shutil.copytree(src, dst)
             else:

@@ -25,7 +25,26 @@ Download the latest release for your platform from the **[Releases page](https:/
 4. After that, double-click to launch normally
 5. The browser opens automatically at `http://localhost:5000`
 
-### Linux
+### Linux — Flatpak (recommended)
+
+1. Download `Tokenificator-...-linux.flatpak`
+2. Install it:
+
+   ```bash
+   flatpak install Tokenificator-...-linux.flatpak
+   ```
+
+3. Run it:
+
+   ```bash
+   flatpak run io.github.mordachai.Tokenificator
+   ```
+
+4. The browser opens automatically at `http://localhost:5000`
+
+> Requires [Flatpak](https://flatpak.org/setup/) and the [GNOME runtime](https://dl.flathub.org/repo/flathub.flatpakrepo) — both are pre-installed on most modern Linux desktops (Fedora, Ubuntu 24+, etc.).
+
+### Linux — standalone binary
 
 1. Download `Tokenificator-...-linux.zip`
 2. Unzip anywhere
