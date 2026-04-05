@@ -1551,12 +1551,13 @@
     resultsEl.innerHTML = '<div class="results-empty">Generating…</div>';
 
     // Use manual transform only for single-file mode
-    const isManual = !!(preview.nobgImg && SUPPORTED_IMG_EXT.test(fileInput) && !folderInput);
+    const isManual   = !!(preview.nobgImg && SUPPORTED_IMG_EXT.test(fileInput) && !folderInput);
+    const hasPrepared = !!(preview.preparedInput === inputPath && preview.preparedPath);
     const transform = isManual ? {
       pan_x:      preview.panX / CANVAS_PX,
       pan_y:      preview.panY / CANVAS_PX,
       user_scale: preview.userScale,
-      nobg_path:  (preview.preparedInput === inputPath && preview.preparedPath) ? preview.preparedPath : "",
+      nobg_path:  hasPrepared ? preview.preparedPath : "",
     } : null;
 
     statusEl.innerHTML = isManual
@@ -1575,8 +1576,10 @@
           size:               parseInt(SEL.size.value),
           crop_backend:       SEL.crop.value,
           crop_zoom:          parseInt(SEL.zoom.value),
-          remove_bg_portrait: document.getElementById('toggleBgPortrait').checked,
-          remove_bg_token:    document.getElementById('toggleBgToken').checked,
+          // In manual mode, bg removal only applies if the user actually ran
+          // "Remove BG & Preview" first. Without that step, the toggles are ignored.
+          remove_bg_portrait: (!isManual || hasPrepared) && document.getElementById('toggleBgPortrait').checked,
+          remove_bg_token:    (!isManual || hasPrepared) && document.getElementById('toggleBgToken').checked,
           frame:              SEL.frame.value,
           split_y:            parseInt(document.getElementById('splitY').value) / 100,
           circle_mask:        parseInt(document.getElementById('circleMask').value) / 100,
